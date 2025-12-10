@@ -1,0 +1,265 @@
+{
+  "skillId": "edge_deploy",
+  "name": "Edge Deploy",
+  "version": "1.0.0",
+  "description": "TensorRT optimization and Jetson deployment pipeline for edge inference",
+  "category": "edge",
+
+  "capabilities": [
+    "export_to_onnx",
+    "convert_to_tensorrt",
+    "benchmark_latency",
+    "validate_accuracy",
+    "deploy_to_jetson"
+  ],
+
+  "api": {
+    "export_to_onnx": {
+      "description": "Export PyTorch policy to ONNX format",
+      "method": "function_call",
+      "endpoint": "skills.edge_deploy.src.onnx_exporter.export",
+
+      "parameters": [
+        {
+          "name": "pytorch_model_path",
+          "type": "string",
+          "required": true,
+          "description": "Path to PyTorch model (.pt or .pth file)"
+        },
+        {
+          "name": "output_onnx_path",
+          "type": "string",
+          "required": true,
+          "description": "Output path for ONNX model"
+        },
+        {
+          "name": "input_shape",
+          "type": "array",
+          "required": true,
+          "description": "Input tensor shape [batch, channels, height, width]"
+        },
+        {
+          "name": "opset_version",
+          "type": "number",
+          "required": false,
+          "default": 17,
+          "description": "ONNX opset version"
+        },
+        {
+          "name": "simplify",
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Simplify ONNX graph using onnx-simplifier"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "success": "boolean",
+          "onnx_path": "string",
+          "model_size_mb": "number",
+          "verification_passed": "boolean"
+        }
+      }
+    },
+
+    "convert_to_tensorrt": {
+      "description": "Convert ONNX model to TensorRT engine with quantization",
+      "method": "function_call",
+      "endpoint": "skills.edge_deploy.src.tensorrt_optimizer.convert",
+
+      "parameters": [
+        {
+          "name": "onnx_path",
+          "type": "string",
+          "required": true,
+          "description": "Path to ONNX model"
+        },
+        {
+          "name": "output_engine_path",
+          "type": "string",
+          "required": true,
+          "description": "Output path for TensorRT engine"
+        },
+        {
+          "name": "precision",
+          "type": "string",
+          "required": false,
+          "default": "fp16",
+          "description": "Inference precision",
+          "validation": {
+            "enum": ["fp32", "fp16", "int8"]
+          }
+        },
+        {
+          "name": "calibration_dataset",
+          "type": "string",
+          "required": false,
+          "description": "Path to calibration dataset for INT8 (required if precision=int8)"
+        },
+        {
+          "name": "max_batch_size",
+          "type": "number",
+          "required": false,
+          "default": 1,
+          "description": "Maximum batch size for inference"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "success": "boolean",
+          "engine_path": "string",
+          "engine_size_mb": "number",
+          "precision_used": "string"
+        }
+      }
+    },
+
+    "benchmark_latency": {
+      "description": "Benchmark TensorRT engine latency on target hardware",
+      "method": "function_call",
+      "endpoint": "skills.edge_deploy.src.benchmarker.benchmark",
+
+      "parameters": [
+        {
+          "name": "engine_path",
+          "type": "string",
+          "required": true,
+          "description": "Path to TensorRT engine"
+        },
+        {
+          "name": "num_iterations",
+          "type": "number",
+          "required": false,
+          "default": 1000,
+          "description": "Number of benchmark iterations"
+        },
+        {
+          "name": "warmup_iterations",
+          "type": "number",
+          "required": false,
+          "default": 100,
+          "description": "Warmup iterations before measurement"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "mean_latency_ms": "number",
+          "std_latency_ms": "number",
+          "p50_latency_ms": "number",
+          "p95_latency_ms": "number",
+          "p99_latency_ms": "number",
+          "throughput_fps": "number"
+        }
+      }
+    },
+
+    "validate_accuracy": {
+      "description": "Validate accuracy degradation after quantization",
+      "method": "function_call",
+      "endpoint": "skills.edge_deploy.src.accuracy_validator.validate",
+
+      "parameters": [
+        {
+          "name": "original_model_path",
+          "type": "string",
+          "required": true,
+          "description": "Path to original PyTorch model"
+        },
+        {
+          "name": "tensorrt_engine_path",
+          "type": "string",
+          "required": true,
+          "description": "Path to TensorRT engine"
+        },
+        {
+          "name": "test_dataset",
+          "type": "string",
+          "required": true,
+          "description": "Path to test dataset"
+        },
+        {
+          "name": "metric",
+          "type": "string",
+          "required": false,
+          "default": "mse",
+          "description": "Accuracy metric",
+          "validation": {
+            "enum": ["mse", "mae", "cosine_similarity"]
+          }
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "accuracy_degradation_percent": "number",
+          "acceptable": "boolean",
+          "metric_value": "number"
+        }
+      }
+    },
+
+    "deploy_to_jetson": {
+      "description": "Deploy TensorRT engine to NVIDIA Jetson device",
+      "method": "function_call",
+      "endpoint": "skills.edge_deploy.src.jetson_deployer.deploy",
+
+      "parameters": [
+        {
+          "name": "engine_path",
+          "type": "string",
+          "required": true,
+          "description": "Path to TensorRT engine"
+        },
+        {
+          "name": "jetson_ip",
+          "type": "string",
+          "required": true,
+          "description": "IP address of Jetson device"
+        },
+        {
+          "name": "jetson_user",
+          "type": "string",
+          "required": false,
+          "default": "nvidia",
+          "description": "SSH username for Jetson"
+        },
+        {
+          "name": "deployment_path",
+          "type": "string",
+          "required": false,
+          "default": "/home/nvidia/models",
+          "description": "Deployment directory on Jetson"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "success": "boolean",
+          "jetson_path": "string",
+          "deployment_time_seconds": "number"
+        }
+      }
+    }
+  },
+
+  "dependencies": {
+    "python": ["torch>=2.0", "onnx>=1.15", "onnxruntime>=1.16", "tensorrt>=8.5"],
+    "system": ["cuda-12.1", "tensorrt-8.6"]
+  },
+
+  "metadata": {
+    "introduced_week": 8,
+    "complexity": "high",
+    "estimated_learning_time_minutes": 180,
+    "gpu_required": true
+  }
+}

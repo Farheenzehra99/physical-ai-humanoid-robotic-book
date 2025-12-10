@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.specify/scripts/bash/create-phr.sh --title \"Isaac ROS Integration Spec\" --stage spec --feature \"001-isaac-ros-integration\" --json)",
+      "Bash(.specify/scripts/bash/create-new-feature.sh --json \"Module 3: The AI-Robot Brain (NVIDIA Isaac™) Chapter 7: NVIDIA Isaac Sim & SDK Page 20: ''Setting Up Isaac SDK''\" --number 1 --short-name \"isaac-sdk-setup\")",
+      "Bash(.specify/scripts/bash/setup-plan.sh:*)",
+      "Bash(.specify/scripts/bash/check-prerequisites.sh:*)",
+      "Bash(.specify/scripts/bash/create-phr.sh:*)",
+      "Bash(git rev-parse:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

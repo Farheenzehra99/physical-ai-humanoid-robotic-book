@@ -1,0 +1,190 @@
+{
+  "skillId": "unity_vis",
+  "name": "Unity Visualization",
+  "version": "1.0.0",
+  "description": "Unity ROS2 bridge for high-fidelity visualization, VR, and cinematic rendering",
+  "category": "visualization",
+
+  "capabilities": [
+    "setup_ros2_bridge",
+    "import_urdf_to_unity",
+    "sync_robot_state",
+    "record_cinematic"
+  ],
+
+  "api": {
+    "setup_ros2_bridge": {
+      "description": "Initialize ROS-TCP-Connector bridge between Unity and ROS2",
+      "method": "function_call",
+      "endpoint": "skills.unity_vis.src.ros2_bridge.setup_bridge",
+
+      "parameters": [
+        {
+          "name": "ros2_ip",
+          "type": "string",
+          "required": true,
+          "description": "IP address of ROS2 machine",
+          "validation": {
+            "pattern": "^(\\d{1,3}\\.){3}\\d{1,3}$"
+          }
+        },
+        {
+          "name": "ros2_port",
+          "type": "number",
+          "required": false,
+          "default": 10000,
+          "description": "Port for ROS-TCP-Endpoint"
+        },
+        {
+          "name": "unity_project_path",
+          "type": "string",
+          "required": true,
+          "description": "Path to Unity project"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "success": "boolean",
+          "connection_status": "string",
+          "topics_available": "array"
+        }
+      }
+    },
+
+    "import_urdf_to_unity": {
+      "description": "Import URDF model into Unity with physics and visuals",
+      "method": "function_call",
+      "endpoint": "skills.unity_vis.src.urdf_importer.import_urdf",
+
+      "parameters": [
+        {
+          "name": "urdf_path",
+          "type": "string",
+          "required": true,
+          "description": "Path to URDF file"
+        },
+        {
+          "name": "unity_scene",
+          "type": "string",
+          "required": true,
+          "description": "Unity scene name to import into"
+        },
+        {
+          "name": "material_overrides",
+          "type": "object",
+          "required": false,
+          "description": "Material overrides for visual enhancement"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "success": "boolean",
+          "gameobject_name": "string",
+          "joint_count": "number",
+          "link_count": "number"
+        }
+      }
+    },
+
+    "sync_robot_state": {
+      "description": "Synchronize Unity robot with ROS2 /joint_states topic",
+      "method": "function_call",
+      "endpoint": "skills.unity_vis.src.state_syncer.sync",
+
+      "parameters": [
+        {
+          "name": "robot_gameobject",
+          "type": "string",
+          "required": true,
+          "description": "Name of Unity robot GameObject"
+        },
+        {
+          "name": "joint_states_topic",
+          "type": "string",
+          "required": false,
+          "default": "/joint_states",
+          "description": "ROS2 topic for joint states"
+        },
+        {
+          "name": "sync_rate_hz",
+          "type": "number",
+          "required": false,
+          "default": 60,
+          "description": "Synchronization rate (Hz)"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "syncing": "boolean",
+          "actual_rate_hz": "number",
+          "latency_ms": "number"
+        }
+      }
+    },
+
+    "record_cinematic": {
+      "description": "Record 4K cinematic video using Unity Timeline and Cinemachine",
+      "method": "function_call",
+      "endpoint": "skills.unity_vis.src.cinematic_recorder.record",
+
+      "parameters": [
+        {
+          "name": "timeline_asset",
+          "type": "string",
+          "required": true,
+          "description": "Path to Unity Timeline asset"
+        },
+        {
+          "name": "output_path",
+          "type": "string",
+          "required": true,
+          "description": "Output video file path"
+        },
+        {
+          "name": "resolution",
+          "type": "string",
+          "required": false,
+          "default": "3840x2160",
+          "description": "Video resolution",
+          "validation": {
+            "enum": ["1920x1080", "3840x2160"]
+          }
+        },
+        {
+          "name": "framerate",
+          "type": "number",
+          "required": false,
+          "default": 30,
+          "description": "Video framerate"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "success": "boolean",
+          "output_file": "string",
+          "duration_seconds": "number",
+          "file_size_mb": "number"
+        }
+      }
+    }
+  },
+
+  "dependencies": {
+    "unity": ["2023.2+", "ROS-TCP-Connector", "URDF-Importer", "Cinemachine"],
+    "ros2": ["ros_tcp_endpoint"]
+  },
+
+  "metadata": {
+    "introduced_week": 7,
+    "complexity": "medium",
+    "estimated_learning_time_minutes": 120
+  }
+}

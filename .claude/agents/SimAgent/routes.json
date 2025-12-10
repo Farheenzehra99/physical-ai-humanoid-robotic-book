@@ -1,0 +1,219 @@
+{
+  "agent_name": "SimAgent",
+  "version": "1.0.0",
+  "description": "Multi-skill agent for simulation-based robot development",
+  "skills": [
+    "ROS2_Core",
+    "URDF_Designer",
+    "Gazebo_Sim",
+    "Unity_Vis"
+  ],
+  "routing_rules": [
+    {
+      "trigger": "robot model",
+      "keywords": ["urdf", "robot structure", "kinematic chain", "joint", "link", "design robot"],
+      "target_skill": "URDF_Designer",
+      "priority": 1,
+      "description": "Route robot design tasks to URDF_Designer"
+    },
+    {
+      "trigger": "physics simulation",
+      "keywords": ["simulate", "gazebo", "physics", "collision", "spawn robot", "world"],
+      "target_skill": "Gazebo_Sim",
+      "priority": 2,
+      "description": "Route physics simulation tasks to Gazebo_Sim"
+    },
+    {
+      "trigger": "ros2 control",
+      "keywords": ["ros2", "node", "topic", "publisher", "subscriber", "control"],
+      "target_skill": "ROS2_Core",
+      "priority": 2,
+      "description": "Route ROS2 communication tasks to ROS2_Core"
+    },
+    {
+      "trigger": "visualization",
+      "keywords": ["visualize", "unity", "render", "display", "3d view", "video"],
+      "target_skill": "Unity_Vis",
+      "priority": 3,
+      "description": "Route visualization tasks to Unity_Vis"
+    }
+  ],
+  "sequential_workflows": [
+    {
+      "name": "new_robot_development",
+      "description": "Create and simulate a new robot from scratch",
+      "steps": [
+        {
+          "step": 1,
+          "skill": "URDF_Designer",
+          "action": "Design robot model with joints and links",
+          "output": "URDF file"
+        },
+        {
+          "step": 2,
+          "skill": "Gazebo_Sim",
+          "action": "Create simulation world and spawn robot",
+          "input": "URDF file from step 1",
+          "output": "Gazebo world file"
+        },
+        {
+          "step": 3,
+          "skill": "ROS2_Core",
+          "action": "Create control nodes for robot",
+          "input": "Robot spawned in step 2",
+          "output": "ROS2 control nodes"
+        },
+        {
+          "step": 4,
+          "skill": "Unity_Vis",
+          "action": "Set up visualization (optional)",
+          "input": "Robot state from ROS2",
+          "output": "Unity scene"
+        }
+      ]
+    },
+    {
+      "name": "control_testing",
+      "description": "Test robot control algorithms in simulation",
+      "steps": [
+        {
+          "step": 1,
+          "skill": "ROS2_Core",
+          "action": "Implement control algorithm",
+          "output": "Control node"
+        },
+        {
+          "step": 2,
+          "skill": "Gazebo_Sim",
+          "action": "Test in physics simulation",
+          "input": "Control commands from step 1",
+          "output": "Simulation results"
+        },
+        {
+          "step": 3,
+          "skill": "Unity_Vis",
+          "action": "Visualize and record behavior",
+          "input": "Simulation from step 2",
+          "output": "Video/screenshots"
+        }
+      ]
+    },
+    {
+      "name": "sensor_integration",
+      "description": "Add and test sensors on robot",
+      "steps": [
+        {
+          "step": 1,
+          "skill": "URDF_Designer",
+          "action": "Add sensor links to URDF",
+          "output": "Updated URDF"
+        },
+        {
+          "step": 2,
+          "skill": "Gazebo_Sim",
+          "action": "Configure sensor plugins",
+          "input": "Updated URDF from step 1",
+          "output": "Sensor topics"
+        },
+        {
+          "step": 3,
+          "skill": "ROS2_Core",
+          "action": "Subscribe to sensor data",
+          "input": "Sensor topics from step 2",
+          "output": "Processed sensor data"
+        }
+      ]
+    }
+  ],
+  "parallel_capabilities": [
+    {
+      "name": "dual_visualization",
+      "description": "Run Gazebo physics and Unity visualization simultaneously",
+      "skills": ["Gazebo_Sim", "Unity_Vis"],
+      "coordination": "Both subscribe to same ROS2 topics"
+    },
+    {
+      "name": "multi_sensor_processing",
+      "description": "Process multiple sensor streams concurrently",
+      "skills": ["ROS2_Core"],
+      "coordination": "Multiple subscriber nodes in parallel"
+    }
+  ],
+  "decision_logic": {
+    "primary_decision": "Does task involve robot simulation?",
+    "branches": [
+      {
+        "condition": "New robot design",
+        "first_skill": "URDF_Designer",
+        "then": "Gazebo_Sim or ROS2_Core"
+      },
+      {
+        "condition": "Existing robot, new control",
+        "first_skill": "ROS2_Core",
+        "then": "Gazebo_Sim for testing"
+      },
+      {
+        "condition": "Physics tuning",
+        "first_skill": "Gazebo_Sim",
+        "then": "Test with ROS2_Core"
+      },
+      {
+        "condition": "Visualization only",
+        "first_skill": "Unity_Vis",
+        "then": "Connect to existing ROS2"
+      }
+    ]
+  },
+  "skill_dependencies": {
+    "URDF_Designer": {
+      "outputs_to": ["Gazebo_Sim", "Unity_Vis"],
+      "format": "URDF XML file"
+    },
+    "Gazebo_Sim": {
+      "outputs_to": ["ROS2_Core"],
+      "format": "ROS2 topics (sensor_msgs, geometry_msgs)"
+    },
+    "ROS2_Core": {
+      "outputs_to": ["Gazebo_Sim", "Unity_Vis"],
+      "format": "ROS2 topics"
+    },
+    "Unity_Vis": {
+      "inputs_from": ["ROS2_Core", "URDF_Designer"],
+      "format": "ROS2 topics, URDF files"
+    }
+  },
+  "example_routes": [
+    {
+      "user_request": "Create a humanoid robot simulation",
+      "routing": [
+        "URDF_Designer (design)",
+        "Gazebo_Sim (spawn)",
+        "ROS2_Core (control)"
+      ]
+    },
+    {
+      "user_request": "Test walking algorithm in Gazebo",
+      "routing": [
+        "ROS2_Core (implement algorithm)",
+        "Gazebo_Sim (run simulation)"
+      ]
+    },
+    {
+      "user_request": "Visualize robot in Unity with real-time control",
+      "routing": [
+        "ROS2_Core (control interface)",
+        "Unity_Vis (visualization)",
+        "Gazebo_Sim (optional physics)"
+      ]
+    },
+    {
+      "user_request": "Add depth camera and test navigation",
+      "routing": [
+        "URDF_Designer (add camera link)",
+        "Gazebo_Sim (sensor plugin)",
+        "ROS2_Core (navigation node)",
+        "Unity_Vis (visualize camera feed)"
+      ]
+    }
+  ]
+}

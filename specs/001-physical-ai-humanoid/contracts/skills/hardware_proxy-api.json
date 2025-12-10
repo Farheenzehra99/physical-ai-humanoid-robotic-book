@@ -1,0 +1,278 @@
+{
+  "skillId": "hardware_proxy",
+  "name": "Hardware Proxy",
+  "version": "1.0.0",
+  "description": "CAN bus communication, motor control, sensor integration, and safety systems for real robots",
+  "category": "hardware",
+
+  "capabilities": [
+    "connect_can_bus",
+    "control_motors",
+    "read_sensors",
+    "emergency_stop",
+    "monitor_safety"
+  ],
+
+  "api": {
+    "connect_can_bus": {
+      "description": "Initialize CAN bus connection to robot motors",
+      "method": "function_call",
+      "endpoint": "skills.hardware_proxy.src.can_interface.connect",
+
+      "parameters": [
+        {
+          "name": "interface",
+          "type": "string",
+          "required": true,
+          "description": "CAN interface name",
+          "validation": {
+            "pattern": "^can\\d+$"
+          }
+        },
+        {
+          "name": "bitrate",
+          "type": "number",
+          "required": false,
+          "default": 1000000,
+          "description": "CAN bus bitrate (bps)",
+          "validation": {
+            "enum": [250000, 500000, 1000000]
+          }
+        },
+        {
+          "name": "motor_ids",
+          "type": "array",
+          "required": true,
+          "description": "List of motor IDs to initialize"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "success": "boolean",
+          "connected_motors": "array",
+          "failed_motors": "array",
+          "bus_status": "string"
+        }
+      }
+    },
+
+    "control_motors": {
+      "description": "Send position/velocity/torque commands to motors",
+      "method": "function_call",
+      "endpoint": "skills.hardware_proxy.src.motor_controller.control",
+
+      "parameters": [
+        {
+          "name": "motor_commands",
+          "type": "object",
+          "required": true,
+          "description": "Dictionary of motor_id: command_value"
+        },
+        {
+          "name": "control_mode",
+          "type": "string",
+          "required": true,
+          "description": "Motor control mode",
+          "validation": {
+            "enum": ["position", "velocity", "torque"]
+          }
+        },
+        {
+          "name": "max_velocity",
+          "type": "number",
+          "required": false,
+          "description": "Maximum velocity limit (rad/s or m/s)"
+        },
+        {
+          "name": "max_torque",
+          "type": "number",
+          "required": false,
+          "description": "Maximum torque limit (Nm)"
+        },
+        {
+          "name": "apply_limits",
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Enforce joint limits and safety constraints"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "success": "boolean",
+          "motors_controlled": "array",
+          "motors_failed": "array",
+          "safety_violations": "array"
+        }
+      }
+    },
+
+    "read_sensors": {
+      "description": "Read sensor data (IMU, joint encoders, force/torque sensors)",
+      "method": "function_call",
+      "endpoint": "skills.hardware_proxy.src.sensor_reader.read",
+
+      "parameters": [
+        {
+          "name": "sensor_types",
+          "type": "array",
+          "required": true,
+          "description": "List of sensor types to read",
+          "validation": {
+            "enum": ["imu", "joint_encoders", "force_torque", "realsense"]
+          }
+        },
+        {
+          "name": "publish_ros_topics",
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Publish sensor data to ROS2 topics"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "imu": "object",
+          "joint_states": "object",
+          "force_torque": "object",
+          "camera_data": "object",
+          "timestamp": "number"
+        }
+      }
+    },
+
+    "emergency_stop": {
+      "description": "Execute emergency stop (e-stop) to halt all motors",
+      "method": "function_call",
+      "endpoint": "skills.hardware_proxy.src.safety_controller.emergency_stop",
+
+      "parameters": [
+        {
+          "name": "reason",
+          "type": "string",
+          "required": false,
+          "description": "Reason for e-stop (logged)"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "stopped": "boolean",
+          "motors_halted": "array",
+          "timestamp": "number"
+        }
+      }
+    },
+
+    "monitor_safety": {
+      "description": "Continuous safety monitoring (joint limits, thermal, voltage)",
+      "method": "function_call",
+      "endpoint": "skills.hardware_proxy.src.safety_monitor.monitor",
+
+      "parameters": [
+        {
+          "name": "monitoring_rate_hz",
+          "type": "number",
+          "required": false,
+          "default": 100,
+          "description": "Safety monitoring frequency"
+        },
+        {
+          "name": "auto_estop_on_violation",
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Automatically trigger e-stop on safety violation"
+        },
+        {
+          "name": "thermal_limit_celsius",
+          "type": "number",
+          "required": false,
+          "default": 80,
+          "description": "Maximum motor temperature"
+        },
+        {
+          "name": "voltage_limits",
+          "type": "object",
+          "required": false,
+          "description": "Min/max voltage thresholds"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "monitoring_active": "boolean",
+          "current_violations": "array",
+          "thermal_status": "object",
+          "voltage_status": "object"
+        }
+      }
+    },
+
+    "connect_unitree": {
+      "description": "Connect to Unitree Go2/G1/H1 robot via SDK",
+      "method": "function_call",
+      "endpoint": "skills.hardware_proxy.src.unitree_interface.connect",
+
+      "parameters": [
+        {
+          "name": "robot_model",
+          "type": "string",
+          "required": true,
+          "description": "Unitree robot model",
+          "validation": {
+            "enum": ["go2", "g1", "h1"]
+          }
+        },
+        {
+          "name": "robot_ip",
+          "type": "string",
+          "required": true,
+          "description": "Robot IP address (usually 192.168.123.161)"
+        },
+        {
+          "name": "control_level",
+          "type": "string",
+          "required": false,
+          "default": "highlevel",
+          "description": "Control level",
+          "validation": {
+            "enum": ["highlevel", "lowlevel"]
+          }
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "success": "boolean",
+          "robot_model": "string",
+          "sdk_version": "string",
+          "connection_status": "string"
+        }
+      }
+    }
+  },
+
+  "dependencies": {
+    "python": ["python-can", "pyserial", "pyrealsense2"],
+    "ros2": ["sensor_msgs", "std_msgs", "geometry_msgs"],
+    "system": ["can-utils"]
+  },
+
+  "metadata": {
+    "introduced_week": 10,
+    "complexity": "high",
+    "estimated_learning_time_minutes": 240,
+    "hardware_required": true,
+    "safety_critical": true
+  }
+}

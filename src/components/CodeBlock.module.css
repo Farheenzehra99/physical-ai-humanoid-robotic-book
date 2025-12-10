@@ -1,0 +1,100 @@
+.codeBlockContainer {
+  position: relative;
+  margin: 1.5rem 0;
+}
+
+.emojiIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, var(--ifm-color-primary-lightest), var(--ifm-color-secondary-lightest));
+  border-radius: 8px 8px 0 0;
+  border-bottom: 2px solid #00D9FF;
+  font-size: 0.9rem;
+}
+
+.emoji {
+  font-size: 1.25rem;
+}
+
+.emojiLabel {
+  font-weight: 600;
+  color: var(--ifm-color-emphasis-800);
+}
+
+.copyButton {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--ifm-color-primary);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.copyButton:hover {
+  background-color: var(--ifm-color-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.copyButton.copied {
+  background-color: #00D9FF;
+  color: #0A0E27;
+}
+
+.legend {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background-color: var(--ifm-alert-background-color);
+  border-left: 4px solid #00D9FF;
+  border-radius: 4px;
+}
+
+.legend h4 {
+  margin-top: 0;
+  color: var(--ifm-heading-color);
+  font-size: 1.1rem;
+}
+
+.legend ul {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0 0;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  font-size: 0.95rem;
+}
+
+.legend li span {
+  font-size: 1.25rem;
+  min-width: 1.5rem;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .emojiIndicator {
+    font-size: 0.85rem;
+  }
+
+  .emoji {
+    font-size: 1.1rem;
+  }
+
+  .copyButton {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+  }
+}

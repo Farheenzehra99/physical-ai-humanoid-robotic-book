@@ -1,0 +1,97 @@
+{
+  "name": "physical-ai-humanoid-robotics",
+  "version": "1.0.0",
+  "description": "Complete Educational Resource for Physical AI & Humanoid Robotics - 13-Week University Capstone",
+  "private": true,
+  "scripts": {
+    "docusaurus": "docusaurus",
+    "start": "docusaurus start",
+    "build": "docusaurus build",
+    "swizzle": "docusaurus swizzle",
+    "deploy": "docusaurus deploy",
+    "clear": "docusaurus clear",
+    "serve": "docusaurus serve",
+    "write-translations": "docusaurus write-translations",
+    "write-heading-ids": "docusaurus write-heading-ids",
+    "typecheck": "tsc",
+    "test": "jest",
+    "test:docs": "jest tests/docs",
+    "lint": "eslint src --ext .ts,.tsx",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
+    "validate:links": "linkinator build/ --recurse --skip mailto:",
+    "validate:lighthouse": "lhci autorun",
+    "validate:schemas": "ajv validate -s 'specs/**/contracts/*.schema.json' -d 'docs/**/*.mdx'",
+    "validate:all": "npm run validate:links && npm run validate:lighthouse && npm run validate:schemas"
+  },
+  "dependencies": {
+    "@docusaurus/core": "^3.1.0",
+    "@docusaurus/plugin-pwa": "^3.9.2",
+    "@docusaurus/preset-classic": "^3.1.0",
+    "@mdx-js/react": "^3.0.0",
+    "clsx": "^2.0.0",
+    "prism-react-renderer": "^1.3.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@docusaurus/module-type-aliases": "^3.1.0",
+    "@docusaurus/tsconfig": "^3.1.0",
+    "@docusaurus/types": "^3.1.0",
+    "@lhci/cli": "^0.13.0",
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/react": "^14.1.2",
+    "@types/jest": "^29.5.11",
+    "@types/node": "^20.10.6",
+    "@types/react": "^18.2.45",
+    "@typescript-eslint/eslint-plugin": "^6.16.0",
+    "@typescript-eslint/parser": "^6.16.0",
+    "ajv": "^8.12.0",
+    "ajv-cli": "^5.0.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.33.2",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "linkinator": "^6.0.4",
+    "prettier": "^3.1.1",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.5%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "keywords": [
+    "robotics",
+    "ai",
+    "humanoid",
+    "ros2",
+    "isaac-sim",
+    "reinforcement-learning",
+    "vision-language-action",
+    "sim-to-real",
+    "education",
+    "docusaurus"
+  ],
+  "author": "Physical AI & Humanoid Robotics Project",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/physical-ai-humanoid-robotics"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/physical-ai-humanoid-robotics/issues"
+  },
+  "homepage": "https://physical-ai-robotics.dev"
+}

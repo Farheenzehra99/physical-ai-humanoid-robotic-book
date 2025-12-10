@@ -1,0 +1,182 @@
+{
+  "agentId": "sim_agent",
+  "name": "Simulation Agent",
+  "version": "1.0.0",
+  "description": "Orchestrates simulation workflows across Gazebo and Isaac Sim",
+
+  "routes": [
+    {
+      "routeId": "gazebo_setup_workflow",
+      "name": "Gazebo Setup and Validation",
+      "description": "End-to-end Gazebo setup: URDF generation → Gazebo launch → Robot spawn → Basic control",
+
+      "steps": [
+        {
+          "step": 1,
+          "skill": "urdf_designer",
+          "action": "generate_humanoid_urdf",
+          "parameters": {
+            "robot_name": "humanoid_v1",
+            "dof_count": 18,
+            "height_meters": 1.2,
+            "output_format": "xacro"
+          },
+          "outputs": ["urdf_path"],
+          "success_criteria": "URDF file created and validated"
+        },
+        {
+          "step": 2,
+          "skill": "urdf_designer",
+          "action": "validate_urdf",
+          "parameters": {
+            "urdf_path": "${step1.urdf_path}"
+          },
+          "outputs": ["valid"],
+          "success_criteria": "URDF validation passes with no errors"
+        },
+        {
+          "step": 3,
+          "skill": "gazebo_sim",
+          "action": "launch_simulation",
+          "parameters": {
+            "world_file": "flat_ground.world",
+            "gui": true,
+            "physics_engine": "ode"
+          },
+          "outputs": ["process_id"],
+          "success_criteria": "Gazebo launched successfully"
+        },
+        {
+          "step": 4,
+          "skill": "gazebo_sim",
+          "action": "spawn_robot",
+          "parameters": {
+            "urdf_path": "${step1.urdf_path}",
+            "robot_name": "humanoid_v1",
+            "spawn_position": [0, 0, 0.5]
+          },
+          "outputs": ["robot_name"],
+          "success_criteria": "Robot spawned in simulation"
+        },
+        {
+          "step": 5,
+          "skill": "gazebo_sim",
+          "action": "control_robot",
+          "parameters": {
+            "robot_name": "${step4.robot_name}",
+            "joint_commands": {"hip_pitch_left": 0.2, "hip_pitch_right": 0.2},
+            "control_mode": "position"
+          },
+          "outputs": ["success"],
+          "success_criteria": "Robot responds to control commands"
+        }
+      ],
+
+      "estimated_duration_minutes": 15,
+      "dependencies": ["ros2_core", "urdf_designer", "gazebo_sim"]
+    },
+
+    {
+      "routeId": "isaac_sim_setup_workflow",
+      "name": "Isaac Sim Parallel Environment Setup",
+      "description": "Setup Isaac Sim with parallel environments for RL training",
+
+      "steps": [
+        {
+          "step": 1,
+          "skill": "urdf_designer",
+          "action": "generate_humanoid_urdf",
+          "parameters": {
+            "robot_name": "humanoid_rl",
+            "dof_count": 18,
+            "height_meters": 1.2,
+            "output_format": "urdf"
+          },
+          "outputs": ["urdf_path"],
+          "success_criteria": "URDF generated"
+        },
+        {
+          "step": 2,
+          "skill": "isaac_sim_pipeline",
+          "action": "create_parallel_envs",
+          "parameters": {
+            "env_count": 1024,
+            "robot_urdf_path": "${step1.urdf_path}",
+            "task_config": {
+              "task_name": "humanoid_walking",
+              "reward_weights": {"forward_velocity": 1.0, "upright": 0.5, "energy": -0.01}
+            },
+            "domain_randomization": {
+              "friction": [0.5, 1.5],
+              "mass": [0.8, 1.2]
+            },
+            "headless": true
+          },
+          "outputs": ["env_count", "real_time_factor"],
+          "success_criteria": "1024 envs created, RT factor > 0.9"
+        }
+      ],
+
+      "estimated_duration_minutes": 10,
+      "dependencies": ["urdf_designer", "isaac_sim_pipeline"],
+      "hardware_requirements": {
+        "gpu": "NVIDIA RTX 4070 Ti or better",
+        "vram_gb": 12
+      }
+    },
+
+    {
+      "routeId": "rapid_deployment_workflow",
+      "name": "Rapid Sim-to-Real Deployment",
+      "description": "Fast-track workflow: Gazebo validation → Policy deployment in 5 days",
+
+      "steps": [
+        {
+          "step": 1,
+          "skill": "gazebo_sim",
+          "action": "launch_simulation",
+          "parameters": {"world_file": "flat_ground.world", "gui": true}
+        },
+        {
+          "step": 2,
+          "skill": "edge_deploy",
+          "action": "export_to_onnx",
+          "parameters": {
+            "pytorch_model_path": "pretrained_policy.pt",
+            "output_onnx_path": "policy.onnx",
+            "input_shape": [1, 48]
+          }
+        },
+        {
+          "step": 3,
+          "skill": "edge_deploy",
+          "action": "convert_to_tensorrt",
+          "parameters": {
+            "onnx_path": "${step2.onnx_path}",
+            "output_engine_path": "policy_fp16.engine",
+            "precision": "fp16"
+          }
+        },
+        {
+          "step": 4,
+          "skill": "edge_deploy",
+          "action": "benchmark_latency",
+          "parameters": {
+            "engine_path": "${step3.engine_path}",
+            "num_iterations": 1000
+          },
+          "success_criteria": "Mean latency < 50ms on Jetson Orin Nano"
+        }
+      ],
+
+      "estimated_duration_minutes": 30,
+      "dependencies": ["gazebo_sim", "edge_deploy"]
+    }
+  ],
+
+  "metadata": {
+    "introduced_week": 3,
+    "complexity": "medium",
+    "primary_use_cases": ["simulation_setup", "rl_environment_creation", "pretrained_policy_validation"]
+  }
+}

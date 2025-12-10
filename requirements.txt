@@ -1,0 +1,74 @@
+# Physical AI & Humanoid Robotics - Python Dependencies
+# Python 3.10+ required
+
+# ============================================
+# Testing & Quality
+# ============================================
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-asyncio>=0.21.0
+black>=23.12.0
+ruff>=0.1.9
+isort>=5.13.0
+mypy>=1.7.0
+
+# ============================================
+# ROS2 & Robotics
+# ============================================
+# Note: ROS2 packages installed via rosdep, not pip
+# These are complementary Python robotics libraries
+
+numpy>=1.24.0
+scipy>=1.11.0
+matplotlib>=3.8.0
+pyyaml>=6.0.1
+
+# ============================================
+# Deep Learning & RL
+# ============================================
+torch>=2.1.0
+torchvision>=0.16.0
+torchaudio>=2.1.0
+stable-baselines3>=2.2.0
+gymnasium>=0.29.0
+
+# ============================================
+# Computer Vision
+# ============================================
+opencv-python>=4.8.0
+pillow>=10.1.0
+pyrealsense2>=2.54.0
+
+# ============================================
+# Edge Deployment
+# ============================================
+# TensorRT installed separately via NVIDIA packages
+onnx>=1.15.0
+onnxruntime>=1.16.0
+
+# ============================================
+# Data Processing
+# ============================================
+pandas>=2.1.0
+h5py>=3.10.0
+
+# ============================================
+# Utilities
+# ============================================
+tqdm>=4.66.0
+python-dotenv>=1.0.0
+requests>=2.31.0
+click>=8.1.0
+
+# ============================================
+# Documentation
+# ============================================
+sphinx>=7.2.0
+sphinx-rtd-theme>=2.0.0
+
+# ============================================
+# Development Tools
+# ============================================
+ipython>=8.18.0
+jupyter>=1.0.0
+jupyterlab>=4.0.0

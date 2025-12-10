@@ -1,0 +1,193 @@
+{
+  "skillId": "vla_controller",
+  "name": "VLA Controller",
+  "version": "1.0.0",
+  "description": "Vision-Language-Action model fine-tuning and inference for language-conditioned task execution",
+  "category": "ai",
+
+  "capabilities": [
+    "collect_demonstrations",
+    "finetune_openvla",
+    "run_inference",
+    "validate_model"
+  ],
+
+  "api": {
+    "collect_demonstrations": {
+      "description": "Collect teleoperation demonstrations for VLA fine-tuning",
+      "method": "function_call",
+      "endpoint": "skills.vla_controller.src.demo_collector.collect",
+
+      "parameters": [
+        {
+          "name": "camera_type",
+          "type": "string",
+          "required": true,
+          "description": "Camera type for RGB-D capture",
+          "validation": {
+            "enum": ["realsense_d455", "simulation"]
+          }
+        },
+        {
+          "name": "num_demonstrations",
+          "type": "number",
+          "required": true,
+          "description": "Number of demonstrations to collect",
+          "validation": {
+            "min": 10,
+            "max": 10000
+          }
+        },
+        {
+          "name": "tasks",
+          "type": "array",
+          "required": true,
+          "description": "List of task descriptions (language prompts)"
+        },
+        {
+          "name": "save_path",
+          "type": "string",
+          "required": true,
+          "description": "Directory to save demonstrations"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "success": "boolean",
+          "demonstrations_collected": "number",
+          "dataset_path": "string",
+          "total_frames": "number"
+        }
+      }
+    },
+
+    "finetune_openvla": {
+      "description": "Fine-tune OpenVLA 7B model with LoRA on custom demonstrations",
+      "method": "function_call",
+      "endpoint": "skills.vla_controller.src.openvla_finetuner.finetune",
+
+      "parameters": [
+        {
+          "name": "dataset_path",
+          "type": "string",
+          "required": true,
+          "description": "Path to demonstration dataset"
+        },
+        {
+          "name": "lora_rank",
+          "type": "number",
+          "required": false,
+          "default": 8,
+          "description": "LoRA rank (lower = faster, less expressive)",
+          "validation": {
+            "min": 4,
+            "max": 64
+          }
+        },
+        {
+          "name": "lora_alpha",
+          "type": "number",
+          "required": false,
+          "default": 16,
+          "description": "LoRA alpha scaling factor"
+        },
+        {
+          "name": "epochs",
+          "type": "number",
+          "required": false,
+          "default": 3,
+          "description": "Training epochs"
+        },
+        {
+          "name": "batch_size",
+          "type": "number",
+          "required": false,
+          "default": 4,
+          "description": "Training batch size"
+        },
+        {
+          "name": "use_4bit_quantization",
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Use 4-bit quantization to reduce VRAM"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "success": "boolean",
+          "model_path": "string",
+          "final_loss": "number",
+          "validation_accuracy": "number",
+          "training_time_hours": "number"
+        }
+      }
+    },
+
+    "run_inference": {
+      "description": "Run VLA inference with language command",
+      "method": "function_call",
+      "endpoint": "skills.vla_controller.src.vla_inference_engine.infer",
+
+      "parameters": [
+        {
+          "name": "model_path",
+          "type": "string",
+          "required": true,
+          "description": "Path to fine-tuned VLA model"
+        },
+        {
+          "name": "language_command",
+          "type": "string",
+          "required": true,
+          "description": "Natural language task command"
+        },
+        {
+          "name": "rgb_image",
+          "type": "string",
+          "required": true,
+          "description": "Path to RGB image or numpy array"
+        },
+        {
+          "name": "depth_image",
+          "type": "string",
+          "required": false,
+          "description": "Optional depth image path"
+        },
+        {
+          "name": "use_tensorrt",
+          "type": "boolean",
+          "required": false,
+          "default": false,
+          "description": "Use TensorRT-optimized model (Jetson deployment)"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "action": "array",
+          "confidence": "number",
+          "inference_time_ms": "number"
+        }
+      }
+    }
+  },
+
+  "dependencies": {
+    "python": ["transformers>=4.35", "peft>=0.6", "bitsandbytes>=0.41", "pillow", "opencv-python"],
+    "system": ["cuda-12.1"]
+  },
+
+  "metadata": {
+    "introduced_week": 6,
+    "complexity": "high",
+    "estimated_learning_time_minutes": 180,
+    "gpu_required": true,
+    "min_vram_gb": 12
+  }
+}

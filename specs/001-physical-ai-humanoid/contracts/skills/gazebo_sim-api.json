@@ -1,0 +1,151 @@
+{
+  "skillId": "gazebo_sim",
+  "name": "Gazebo Simulation",
+  "version": "1.0.0",
+  "description": "Launch and control Gazebo simulations for humanoid robots",
+  "category": "simulation",
+
+  "capabilities": [
+    "launch_simulation",
+    "spawn_robot",
+    "control_robot",
+    "get_simulation_state"
+  ],
+
+  "api": {
+    "launch_simulation": {
+      "description": "Launch Gazebo simulator with specified world",
+      "method": "function_call",
+      "endpoint": "skills.gazebo_sim.src.gazebo_launcher.launch",
+
+      "parameters": [
+        {
+          "name": "world_file",
+          "type": "string",
+          "required": false,
+          "default": "empty.world",
+          "description": "Path to Gazebo world file"
+        },
+        {
+          "name": "gui",
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Launch with GUI"
+        },
+        {
+          "name": "physics_engine",
+          "type": "string",
+          "required": false,
+          "default": "ode",
+          "description": "Physics engine to use",
+          "validation": {
+            "enum": ["ode", "bullet", "simbody", "dart"]
+          }
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "success": "boolean",
+          "process_id": "number",
+          "world_name": "string"
+        }
+      }
+    },
+
+    "spawn_robot": {
+      "description": "Spawn robot from URDF into running Gazebo simulation",
+      "method": "function_call",
+      "endpoint": "skills.gazebo_sim.src.robot_spawner.spawn",
+
+      "parameters": [
+        {
+          "name": "urdf_path",
+          "type": "string",
+          "required": true,
+          "description": "Path to robot URDF file"
+        },
+        {
+          "name": "robot_name",
+          "type": "string",
+          "required": true,
+          "description": "Unique name for robot instance"
+        },
+        {
+          "name": "spawn_position",
+          "type": "array",
+          "required": false,
+          "default": [0, 0, 0.5],
+          "description": "Initial position [x, y, z] in meters"
+        },
+        {
+          "name": "spawn_orientation",
+          "type": "array",
+          "required": false,
+          "default": [0, 0, 0],
+          "description": "Initial orientation [roll, pitch, yaw] in radians"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "success": "boolean",
+          "robot_name": "string",
+          "model_state": "object"
+        }
+      }
+    },
+
+    "control_robot": {
+      "description": "Send joint position commands to robot in simulation",
+      "method": "function_call",
+      "endpoint": "skills.gazebo_sim.src.robot_controller.control",
+
+      "parameters": [
+        {
+          "name": "robot_name",
+          "type": "string",
+          "required": true,
+          "description": "Name of robot to control"
+        },
+        {
+          "name": "joint_commands",
+          "type": "object",
+          "required": true,
+          "description": "Dictionary of joint_name: position_radians"
+        },
+        {
+          "name": "control_mode",
+          "type": "string",
+          "required": false,
+          "default": "position",
+          "validation": {
+            "enum": ["position", "velocity", "effort"]
+          }
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "success": "boolean",
+          "joints_controlled": "array"
+        }
+      }
+    }
+  },
+
+  "dependencies": {
+    "ros2": ["gazebo_ros_pkgs", "controller_manager", "joint_state_publisher"],
+    "system": ["gazebo11"]
+  },
+
+  "metadata": {
+    "introduced_week": 3,
+    "complexity": "medium",
+    "estimated_learning_time_minutes": 150
+  }
+}

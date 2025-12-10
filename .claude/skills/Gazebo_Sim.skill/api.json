@@ -1,0 +1,324 @@
+{
+  "skill_name": "Gazebo_Sim",
+  "version": "1.0.0",
+  "description": "Physics simulation, collision detection, sensor modeling, and world creation in Gazebo",
+  "functions": [
+    {
+      "name": "create_world",
+      "description": "Create a Gazebo world file with physics and environment configuration",
+      "inputs": {
+        "world_name": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the world"
+        },
+        "physics_engine": {
+          "type": "string",
+          "required": false,
+          "default": "ode",
+          "description": "Physics engine: ode, bullet, simbody, dart"
+        },
+        "gravity": {
+          "type": "array",
+          "required": false,
+          "default": [0, 0, -9.81],
+          "description": "Gravity vector [x, y, z] in m/s²"
+        },
+        "max_step_size": {
+          "type": "float",
+          "required": false,
+          "default": 0.001,
+          "description": "Maximum physics timestep in seconds"
+        },
+        "real_time_update_rate": {
+          "type": "float",
+          "required": false,
+          "default": 1000.0,
+          "description": "Target update rate in Hz"
+        }
+      },
+      "outputs": {
+        "world_file": {
+          "type": "string",
+          "description": "Path to generated world file"
+        },
+        "launch_file": {
+          "type": "string",
+          "description": "Path to ROS2 launch file for the world"
+        }
+      }
+    },
+    {
+      "name": "spawn_model",
+      "description": "Spawn a robot or object model in Gazebo simulation",
+      "inputs": {
+        "model_path": {
+          "type": "string",
+          "required": true,
+          "description": "Path to URDF or SDF file"
+        },
+        "model_name": {
+          "type": "string",
+          "required": true,
+          "description": "Unique name for the spawned model"
+        },
+        "pose": {
+          "type": "object",
+          "required": false,
+          "description": "Initial pose",
+          "properties": {
+            "position": "[x, y, z] in meters",
+            "orientation": "[qx, qy, qz, qw] quaternion or [r, p, y] euler"
+          }
+        },
+        "reference_frame": {
+          "type": "string",
+          "required": false,
+          "default": "world",
+          "description": "Reference frame for pose"
+        }
+      },
+      "outputs": {
+        "success": {
+          "type": "boolean",
+          "description": "Whether spawn was successful"
+        },
+        "model_name": {
+          "type": "string",
+          "description": "Name of spawned model in simulation"
+        }
+      }
+    },
+    {
+      "name": "configure_physics",
+      "description": "Set physics engine parameters for simulation stability and accuracy",
+      "inputs": {
+        "solver_type": {
+          "type": "string",
+          "required": false,
+          "default": "quick",
+          "description": "ODE solver: quick, world"
+        },
+        "solver_iterations": {
+          "type": "integer",
+          "required": false,
+          "default": 50,
+          "description": "Number of solver iterations per step"
+        },
+        "contact_params": {
+          "type": "object",
+          "required": false,
+          "description": "Contact dynamics parameters",
+          "properties": {
+            "cfm": "Constraint Force Mixing (softness)",
+            "erp": "Error Reduction Parameter (0-1)",
+            "max_correcting_vel": "Maximum correcting velocity",
+            "surface_layer": "Contact surface layer depth"
+          }
+        },
+        "sor": {
+          "type": "float",
+          "required": false,
+          "default": 1.3,
+          "description": "Successive Over-Relaxation parameter"
+        }
+      },
+      "outputs": {
+        "physics_config": {
+          "type": "string",
+          "description": "SDF XML string for physics configuration"
+        }
+      }
+    },
+    {
+      "name": "add_sensor",
+      "description": "Attach a sensor to a robot link in Gazebo",
+      "inputs": {
+        "sensor_type": {
+          "type": "string",
+          "required": true,
+          "description": "Sensor type: camera, depth_camera, lidar, imu, contact, force_torque"
+        },
+        "parent_link": {
+          "type": "string",
+          "required": true,
+          "description": "Link to attach sensor to"
+        },
+        "sensor_name": {
+          "type": "string",
+          "required": true,
+          "description": "Unique sensor name"
+        },
+        "update_rate": {
+          "type": "float",
+          "required": false,
+          "default": 30.0,
+          "description": "Sensor update rate in Hz"
+        },
+        "properties": {
+          "type": "object",
+          "required": true,
+          "description": "Sensor-specific properties",
+          "properties": {
+            "camera": "width, height, hfov, near, far, format",
+            "lidar": "samples, resolution, min_angle, max_angle, min_range, max_range",
+            "imu": "angular_velocity, linear_acceleration noise params",
+            "contact": "collision element name",
+            "force_torque": "measure_direction, frame"
+          }
+        },
+        "ros_plugin": {
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Add ROS2 plugin for sensor"
+        }
+      },
+      "outputs": {
+        "sensor_sdf": {
+          "type": "string",
+          "description": "SDF XML for sensor configuration"
+        },
+        "topic_name": {
+          "type": "string",
+          "description": "ROS2 topic name for sensor data"
+        }
+      }
+    },
+    {
+      "name": "set_contact_properties",
+      "description": "Configure collision and contact properties for surfaces",
+      "inputs": {
+        "model_name": {
+          "type": "string",
+          "required": true,
+          "description": "Model or link name"
+        },
+        "collision_name": {
+          "type": "string",
+          "required": true,
+          "description": "Collision element name"
+        },
+        "friction": {
+          "type": "object",
+          "required": false,
+          "description": "Friction coefficients",
+          "properties": {
+            "mu": "Primary friction coefficient (ODE)",
+            "mu2": "Secondary friction coefficient (ODE)",
+            "slip1": "Slip parameter 1",
+            "slip2": "Slip parameter 2"
+          }
+        },
+        "restitution": {
+          "type": "float",
+          "required": false,
+          "default": 0.0,
+          "description": "Coefficient of restitution (bounciness, 0-1)"
+        },
+        "soft_cfm": {
+          "type": "float",
+          "required": false,
+          "description": "Soft constraint force mixing"
+        },
+        "soft_erp": {
+          "type": "float",
+          "required": false,
+          "description": "Soft error reduction parameter"
+        }
+      },
+      "outputs": {
+        "surface_config": {
+          "type": "string",
+          "description": "SDF surface configuration XML"
+        }
+      }
+    },
+    {
+      "name": "add_model_plugin",
+      "description": "Add a Gazebo plugin to a model for custom behavior",
+      "inputs": {
+        "model_name": {
+          "type": "string",
+          "required": true,
+          "description": "Target model name"
+        },
+        "plugin_name": {
+          "type": "string",
+          "required": true,
+          "description": "Plugin instance name"
+        },
+        "plugin_filename": {
+          "type": "string",
+          "required": true,
+          "description": "Plugin library filename (e.g., libgazebo_ros_joint_state_publisher.so)"
+        },
+        "parameters": {
+          "type": "object",
+          "required": false,
+          "description": "Plugin-specific parameters as key-value pairs"
+        }
+      },
+      "outputs": {
+        "plugin_xml": {
+          "type": "string",
+          "description": "SDF plugin configuration XML"
+        }
+      }
+    },
+    {
+      "name": "create_launch_file",
+      "description": "Generate ROS2 launch file for Gazebo simulation",
+      "inputs": {
+        "world_file": {
+          "type": "string",
+          "required": true,
+          "description": "Path to world file"
+        },
+        "models_to_spawn": {
+          "type": "array",
+          "required": false,
+          "description": "List of models to spawn with paths and poses"
+        },
+        "gui": {
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Launch Gazebo GUI"
+        },
+        "verbose": {
+          "type": "boolean",
+          "required": false,
+          "default": false,
+          "description": "Enable verbose output"
+        }
+      },
+      "outputs": {
+        "launch_file": {
+          "type": "string",
+          "description": "Path to generated launch file"
+        }
+      }
+    }
+  ],
+  "dependencies": [
+    "gazebo_ros_pkgs",
+    "ros_gz_bridge (for Ignition Gazebo)",
+    "xacro",
+    "robot_state_publisher"
+  ],
+  "gazebo_versions": [
+    "Gazebo Classic 11.x",
+    "Gazebo Sim (Ignition) Fortress/Garden/Harmonic"
+  ],
+  "physics_engines": [
+    "ODE (default, stable for most cases)",
+    "Bullet (good for complex contacts)",
+    "Simbody (accurate multibody dynamics)",
+    "DART (good for manipulation)"
+  ],
+  "file_formats": {
+    "input": [".urdf", ".sdf", ".world"],
+    "output": [".world", ".sdf", ".launch.py"]
+  }
+}

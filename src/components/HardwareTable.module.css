@@ -1,0 +1,109 @@
+.tableContainer {
+  margin: 2rem 0;
+  overflow-x: auto;
+}
+
+.tableTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--ifm-heading-color);
+}
+
+.hardwareTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  background-color: var(--ifm-background-color);
+  border: 1px solid var(--ifm-table-border-color);
+}
+
+.tableCaption {
+  caption-side: bottom;
+  padding: 0.75rem;
+  font-size: 0.875rem;
+  font-style: italic;
+  color: var(--ifm-color-emphasis-600);
+  text-align: left;
+}
+
+.hardwareTable thead {
+  background-color: var(--ifm-table-head-background);
+  border-bottom: 2px solid var(--ifm-table-border-color);
+}
+
+.hardwareTable th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--ifm-table-head-color);
+}
+
+.hardwareTable td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--ifm-table-border-color);
+}
+
+.componentLabel {
+  font-weight: 600;
+  background-color: var(--ifm-table-head-background);
+}
+
+.specCell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.specText {
+  font-weight: 500;
+}
+
+.priceTag {
+  font-size: 0.85rem;
+  color: #00D9FF; /* Electric Cyan */
+  font-weight: 600;
+}
+
+.notes {
+  font-size: 0.8rem;
+  color: var(--ifm-color-emphasis-700);
+  font-style: italic;
+}
+
+.notApplicable {
+  color: var(--ifm-color-emphasis-500);
+  font-style: italic;
+}
+
+.tier-minimum {
+  background-color: var(--ifm-color-warning-contrast-background);
+}
+
+.tier-recommended {
+  background-color: var(--ifm-color-success-contrast-background);
+}
+
+.tier-extreme {
+  background-color: var(--ifm-color-info-contrast-background);
+}
+
+.tableLegend {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: var(--ifm-alert-background-color);
+  border-left: 4px solid #00D9FF;
+  font-size: 0.9rem;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .hardwareTable {
+    font-size: 0.85rem;
+  }
+
+  .hardwareTable th,
+  .hardwareTable td {
+    padding: 0.75rem 0.5rem;
+  }
+}

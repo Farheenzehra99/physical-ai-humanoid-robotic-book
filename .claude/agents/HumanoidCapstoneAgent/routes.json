@@ -1,0 +1,297 @@
+{
+  "agent_name": "HumanoidCapstoneAgent",
+  "version": "1.0.0",
+  "description": "Master agent orchestrating all 8 skills for complete end-to-end humanoid robotics development",
+  "skills": [
+    "ROS2_Core",
+    "URDF_Designer",
+    "Gazebo_Sim",
+    "Unity_Vis",
+    "IsaacSim_Pipeline",
+    "VLA_Controller",
+    "Edge_Deploy",
+    "Hardware_Proxy"
+  ],
+  "sub_agents": [
+    "SimAgent (ROS2_Core, URDF_Designer, Gazebo_Sim, Unity_Vis)",
+    "AIAgent (IsaacSim_Pipeline, VLA_Controller, Edge_Deploy)"
+  ],
+  "routing_strategy": "phase_based",
+  "phases": [
+    {
+      "name": "Phase 1: Design & Simulation",
+      "description": "Robot model design and simulation setup",
+      "skills": ["URDF_Designer", "Gazebo_Sim", "ROS2_Core", "Unity_Vis"],
+      "sub_agent": "SimAgent",
+      "typical_duration": "1-4 weeks"
+    },
+    {
+      "name": "Phase 2: AI Development",
+      "description": "AI training and model optimization",
+      "skills": ["IsaacSim_Pipeline", "VLA_Controller", "Edge_Deploy"],
+      "sub_agent": "AIAgent",
+      "typical_duration": "2-8 weeks"
+    },
+    {
+      "name": "Phase 3: Hardware Integration",
+      "description": "Deploy to real robot and integrate",
+      "skills": ["Hardware_Proxy", "Edge_Deploy", "ROS2_Core"],
+      "sub_agent": "None (direct skill orchestration)",
+      "typical_duration": "1-6 weeks"
+    }
+  ],
+  "routing_rules": {
+    "primary_routing": "Route to appropriate phase based on project stage",
+    "fallback": "Route to individual skills if phase unclear",
+    "optimization": "Use sub-agents (SimAgent, AIAgent) when possible"
+  },
+  "complete_workflows": [
+    {
+      "name": "new_humanoid_project",
+      "description": "Build complete humanoid robot system from scratch",
+      "phases": [
+        {
+          "phase": 1,
+          "name": "Design",
+          "steps": [
+            {"skill": "URDF_Designer", "task": "Design robot structure"},
+            {"skill": "Gazebo_Sim", "task": "Set up simulation"},
+            {"skill": "ROS2_Core", "task": "Create control interface"},
+            {"skill": "Unity_Vis", "task": "Visualization (optional)"}
+          ]
+        },
+        {
+          "phase": 2,
+          "name": "AI Training",
+          "steps": [
+            {"skill": "IsaacSim_Pipeline", "task": "Train RL or collect data"},
+            {"skill": "VLA_Controller", "task": "Integrate VLA (optional)"},
+            {"skill": "Edge_Deploy", "task": "Optimize for Jetson"}
+          ]
+        },
+        {
+          "phase": 3,
+          "name": "Hardware",
+          "steps": [
+            {"skill": "Hardware_Proxy", "task": "Connect to robot"},
+            {"skill": "Edge_Deploy", "task": "Deploy models to Jetson"},
+            {"skill": "ROS2_Core", "task": "System integration"}
+          ]
+        }
+      ],
+      "estimated_duration": "4-26 weeks (project-dependent)"
+    },
+    {
+      "name": "add_ai_to_existing_robot",
+      "description": "Add AI control to existing robot system",
+      "phases": [
+        {
+          "phase": 1,
+          "name": "Validation",
+          "steps": [
+            {"skill": "URDF_Designer", "task": "Validate robot model"},
+            {"skill": "Gazebo_Sim", "task": "Verify simulation"}
+          ]
+        },
+        {
+          "phase": 2,
+          "name": "AI",
+          "steps": [
+            {"skill": "IsaacSim_Pipeline", "task": "Train policy"},
+            {"skill": "VLA_Controller", "task": "Fine-tune VLA"},
+            {"skill": "Edge_Deploy", "task": "Optimize"}
+          ]
+        },
+        {
+          "phase": 3,
+          "name": "Integration",
+          "steps": [
+            {"skill": "Edge_Deploy", "task": "Deploy to robot"},
+            {"skill": "Hardware_Proxy", "task": "Test on hardware"}
+          ]
+        }
+      ],
+      "estimated_duration": "2-12 weeks"
+    },
+    {
+      "name": "sim_to_real_transfer",
+      "description": "Transfer trained policy from simulation to real robot",
+      "phases": [
+        {
+          "phase": 1,
+          "name": "Sim Preparation",
+          "steps": [
+            {"skill": "IsaacSim_Pipeline", "task": "Domain randomization"},
+            {"skill": "IsaacSim_Pipeline", "task": "Train robust policy"}
+          ]
+        },
+        {
+          "phase": 2,
+          "name": "Optimization",
+          "steps": [
+            {"skill": "Edge_Deploy", "task": "Model optimization"},
+            {"skill": "Edge_Deploy", "task": "Profiling"}
+          ]
+        },
+        {
+          "phase": 3,
+          "name": "Real Robot",
+          "steps": [
+            {"skill": "Hardware_Proxy", "task": "Connect hardware"},
+            {"skill": "Edge_Deploy", "task": "Deploy"},
+            {"skill": "Hardware_Proxy", "task": "Validate performance"}
+          ]
+        }
+      ],
+      "estimated_duration": "2-6 weeks"
+    }
+  ],
+  "skill_dependencies_map": {
+    "URDF_Designer": {
+      "feeds_into": ["Gazebo_Sim", "Unity_Vis", "IsaacSim_Pipeline"],
+      "required_for": "Robot structure definition"
+    },
+    "Gazebo_Sim": {
+      "requires": ["URDF_Designer"],
+      "feeds_into": ["ROS2_Core"],
+      "required_for": "Physics validation"
+    },
+    "ROS2_Core": {
+      "integrates_with": ["All skills"],
+      "required_for": "System integration"
+    },
+    "Unity_Vis": {
+      "requires": ["URDF_Designer", "ROS2_Core"],
+      "required_for": "Visualization"
+    },
+    "IsaacSim_Pipeline": {
+      "requires": ["URDF_Designer (converted to USD)"],
+      "feeds_into": ["VLA_Controller", "Edge_Deploy"],
+      "required_for": "AI training"
+    },
+    "VLA_Controller": {
+      "feeds_into": ["Edge_Deploy"],
+      "required_for": "Foundation model control"
+    },
+    "Edge_Deploy": {
+      "requires": ["Trained models from IsaacSim or VLA"],
+      "feeds_into": ["Hardware_Proxy"],
+      "required_for": "Edge optimization"
+    },
+    "Hardware_Proxy": {
+      "requires": ["Edge_Deploy (deployed models)"],
+      "integrates_with": ["ROS2_Core"],
+      "required_for": "Real robot control"
+    }
+  },
+  "decision_matrix": {
+    "new_project": {
+      "start_with": "URDF_Designer",
+      "then": "SimAgent (design phase)",
+      "then": "AIAgent (AI phase)",
+      "then": "Hardware integration"
+    },
+    "existing_robot_new_ai": {
+      "start_with": "URDF_Designer (validation)",
+      "then": "AIAgent (training + deployment)",
+      "then": "Hardware_Proxy (integration)"
+    },
+    "ai_trained_need_deployment": {
+      "start_with": "Edge_Deploy",
+      "then": "Hardware_Proxy"
+    },
+    "simulation_only": {
+      "use": "SimAgent",
+      "skills": ["URDF_Designer", "Gazebo_Sim", "ROS2_Core", "Unity_Vis"]
+    },
+    "hardware_issues": {
+      "start_with": "Hardware_Proxy (diagnostics)",
+      "then": "ROS2_Core (system check)",
+      "fallback": "Gazebo_Sim (simulation test)"
+    }
+  },
+  "coordination_patterns": {
+    "sequential": {
+      "description": "Most common: Phase 1 → Phase 2 → Phase 3",
+      "use_when": "New projects, methodical approach"
+    },
+    "iterative": {
+      "description": "Phase 1 → Phase 2 → Phase 3 → Back to Phase 1 (refine)",
+      "use_when": "Performance optimization needed"
+    },
+    "parallel": {
+      "description": "Multiple skills active simultaneously",
+      "use_when": "Independent tasks (e.g., Gazebo + Unity)",
+      "examples": [
+        "Gazebo physics + Unity visualization",
+        "Multiple AI training experiments",
+        "Multi-model optimization"
+      ]
+    },
+    "hybrid": {
+      "description": "Combine sequential phases with parallel execution within phases",
+      "use_when": "Complex projects, time optimization"
+    }
+  },
+  "integration_checkpoints": [
+    {
+      "after": "Phase 1",
+      "validate": [
+        "URDF loads in Gazebo",
+        "ROS2 topics publish correctly",
+        "Robot is controllable in simulation",
+        "Visualization (if used) is accurate"
+      ]
+    },
+    {
+      "after": "Phase 2",
+      "validate": [
+        "Models trained to target performance",
+        "Optimization maintains accuracy",
+        "Inference latency acceptable",
+        "Models ready for deployment"
+      ]
+    },
+    {
+      "after": "Phase 3",
+      "validate": [
+        "Hardware communication stable",
+        "Models deployed successfully",
+        "Control frequency adequate",
+        "Safety systems functional",
+        "Sim-to-real gap acceptable"
+      ]
+    }
+  ],
+  "example_routes": [
+    {
+      "user_request": "Build a complete humanoid robot with AI control",
+      "route": [
+        "Phase 1: SimAgent (URDF → Gazebo → ROS2 → Unity)",
+        "Phase 2: AIAgent (Isaac → VLA → Edge_Deploy)",
+        "Phase 3: Hardware_Proxy + Edge_Deploy + ROS2_Core"
+      ],
+      "estimated_duration": "8-20 weeks"
+    },
+    {
+      "user_request": "Add VLA control to my existing Unitree H1",
+      "route": [
+        "URDF_Designer (validate H1 model)",
+        "AIAgent (VLA fine-tune + optimize)",
+        "Hardware_Proxy (connect to H1)",
+        "Edge_Deploy (deploy to H1's Jetson)"
+      ],
+      "estimated_duration": "2-6 weeks"
+    },
+    {
+      "user_request": "Train walking policy and deploy to real robot",
+      "route": [
+        "IsaacSim_Pipeline (RL training)",
+        "Edge_Deploy (optimize)",
+        "Hardware_Proxy (connect)",
+        "Edge_Deploy (deploy to Jetson)"
+      ],
+      "estimated_duration": "2-8 weeks"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="humanoid">
+  <!-- 18-DOF Humanoid URDF - Placeholder -->
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="0.3 0.2 0.4"/>
+      </geometry>
+    </visual>
+  </link>
+</robot>
