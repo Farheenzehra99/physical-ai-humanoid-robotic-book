@@ -1,0 +1,184 @@
+{
+  "agentId": "ai_agent",
+  "name": "AI Training Agent",
+  "version": "1.0.0",
+  "description": "Orchestrates AI training workflows: RL policy training and VLA fine-tuning",
+
+  "routes": [
+    {
+      "routeId": "rl_training_workflow",
+      "name": "Full RL Training Pipeline",
+      "description": "Train walking policy from scratch using Isaac Sim parallel environments",
+
+      "steps": [
+        {
+          "step": 1,
+          "skill": "urdf_designer",
+          "action": "generate_humanoid_urdf",
+          "parameters": {
+            "robot_name": "humanoid_rl",
+            "dof_count": 18,
+            "height_meters": 1.2
+          },
+          "outputs": ["urdf_path"]
+        },
+        {
+          "step": 2,
+          "skill": "isaac_sim_pipeline",
+          "action": "create_parallel_envs",
+          "parameters": {
+            "env_count": 1024,
+            "robot_urdf_path": "${step1.urdf_path}",
+            "task_config": {
+              "task_name": "humanoid_walking",
+              "observation_dim": 48,
+              "action_dim": 18,
+              "reward_weights": {
+                "forward_velocity": 1.0,
+                "upright_orientation": 0.5,
+                "energy_penalty": -0.01,
+                "joint_smoothness": 0.1
+              },
+              "termination_conditions": {
+                "fall_threshold_m": 0.3,
+                "max_episode_steps": 1000
+              }
+            },
+            "domain_randomization": {
+              "friction_range": [0.5, 1.5],
+              "mass_range": [0.8, 1.2],
+              "lighting_intensity": [0.5, 1.5]
+            },
+            "headless": true
+          },
+          "outputs": ["env_manager"]
+        },
+        {
+          "step": 3,
+          "skill": "isaac_sim_pipeline",
+          "action": "train_policy",
+          "parameters": {
+            "env_manager": "${step2.env_manager}",
+            "total_timesteps": 10000000,
+            "learning_rate": 0.0003,
+            "checkpoint_frequency": 100000,
+            "tensorboard_log": "./logs/humanoid_walking"
+          },
+          "outputs": ["policy_path", "final_reward_mean", "training_time_hours"],
+          "success_criteria": "Final reward mean > 500, training converges"
+        },
+        {
+          "step": 4,
+          "skill": "isaac_sim_pipeline",
+          "action": "evaluate_policy",
+          "parameters": {
+            "policy_path": "${step3.policy_path}",
+            "num_episodes": 100,
+            "render": false
+          },
+          "outputs": ["mean_reward", "success_rate"],
+          "success_criteria": "Success rate > 0.85"
+        }
+      ],
+
+      "estimated_duration_hours": 12,
+      "dependencies": ["urdf_designer", "isaac_sim_pipeline"],
+      "hardware_requirements": {
+        "gpu": "NVIDIA RTX 4070 Ti (12GB VRAM) minimum",
+        "recommended_gpu": "NVIDIA RTX 4090 (24GB VRAM)"
+      }
+    },
+
+    {
+      "routeId": "vla_integration_workflow",
+      "name": "VLA Fine-Tuning and Deployment",
+      "description": "Fine-tune OpenVLA for language-conditioned task execution",
+
+      "steps": [
+        {
+          "step": 1,
+          "skill": "vla_controller",
+          "action": "collect_demonstrations",
+          "parameters": {
+            "camera_type": "realsense_d455",
+            "num_demonstrations": 200,
+            "tasks": [
+              "pick up red box",
+              "place object on table",
+              "open drawer",
+              "close drawer",
+              "push button"
+            ],
+            "save_path": "./vla_datasets/h1_tasks"
+          },
+          "outputs": ["dataset_path", "demonstrations_collected"],
+          "success_criteria": "Collected 200+ demonstrations across 5 tasks"
+        },
+        {
+          "step": 2,
+          "skill": "vla_controller",
+          "action": "finetune_openvla",
+          "parameters": {
+            "dataset_path": "${step1.dataset_path}",
+            "lora_rank": 8,
+            "lora_alpha": 16,
+            "epochs": 3,
+            "batch_size": 4,
+            "use_4bit_quantization": true
+          },
+          "outputs": ["model_path", "validation_accuracy", "training_time_hours"],
+          "success_criteria": "Validation accuracy > 0.85"
+        },
+        {
+          "step": 3,
+          "skill": "vla_controller",
+          "action": "run_inference",
+          "parameters": {
+            "model_path": "${step2.model_path}",
+            "language_command": "pick up red box",
+            "rgb_image": "./test_images/scene_001.png",
+            "use_tensorrt": false
+          },
+          "outputs": ["action", "confidence"],
+          "success_criteria": "Confidence > 0.7 for test commands"
+        },
+        {
+          "step": 4,
+          "skill": "edge_deploy",
+          "action": "export_to_onnx",
+          "parameters": {
+            "pytorch_model_path": "${step2.model_path}",
+            "output_onnx_path": "vla_model.onnx",
+            "input_shape": [1, 3, 224, 224]
+          },
+          "outputs": ["onnx_path"]
+        },
+        {
+          "step": 5,
+          "skill": "edge_deploy",
+          "action": "deploy_to_jetson",
+          "parameters": {
+            "engine_path": "${step4.onnx_path}",
+            "jetson_ip": "192.168.1.100",
+            "jetson_user": "nvidia"
+          },
+          "outputs": ["jetson_path"],
+          "success_criteria": "Model deployed successfully to Jetson Orin AGX"
+        }
+      ],
+
+      "estimated_duration_hours": 8,
+      "dependencies": ["vla_controller", "edge_deploy"],
+      "hardware_requirements": {
+        "training": "RTX 4070 Ti (12GB VRAM) with LoRA",
+        "inference": "Jetson Orin AGX (64GB) for full VLA model"
+      }
+    }
+  ],
+
+  "metadata": {
+    "introduced_week": 5,
+    "complexity": "high",
+    "primary_use_cases": ["rl_policy_training", "vla_finetuning", "language_conditioned_control"]
+  }
+}

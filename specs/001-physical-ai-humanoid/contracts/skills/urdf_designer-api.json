@@ -1,0 +1,149 @@
+{
+  "skillId": "urdf_designer",
+  "name": "URDF Designer",
+  "version": "1.0.0",
+  "description": "Generate and validate URDF models for humanoid robots",
+  "category": "modeling",
+
+  "capabilities": [
+    "generate_humanoid_urdf",
+    "validate_urdf",
+    "compute_forward_kinematics",
+    "compute_inverse_kinematics"
+  ],
+
+  "api": {
+    "generate_humanoid_urdf": {
+      "description": "Generate 18-DOF humanoid URDF model with specified dimensions",
+      "method": "function_call",
+      "endpoint": "skills.urdf_designer.src.urdf_generator.generate_humanoid",
+
+      "parameters": [
+        {
+          "name": "robot_name",
+          "type": "string",
+          "required": true,
+          "description": "Name of the humanoid robot"
+        },
+        {
+          "name": "dof_count",
+          "type": "number",
+          "required": false,
+          "default": 18,
+          "description": "Total degrees of freedom",
+          "validation": {
+            "min": 6,
+            "max": 30
+          }
+        },
+        {
+          "name": "height_meters",
+          "type": "number",
+          "required": false,
+          "default": 1.2,
+          "description": "Robot height in meters"
+        },
+        {
+          "name": "include_hands",
+          "type": "boolean",
+          "required": false,
+          "default": false,
+          "description": "Include gripper hands (adds 12 DOF)"
+        },
+        {
+          "name": "output_format",
+          "type": "string",
+          "required": false,
+          "default": "xacro",
+          "description": "Output format",
+          "validation": {
+            "enum": ["urdf", "xacro"]
+          }
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "success": "boolean",
+          "urdf_path": "string",
+          "dof_count": "number",
+          "joint_names": "array",
+          "link_names": "array"
+        }
+      }
+    },
+
+    "validate_urdf": {
+      "description": "Validate URDF file for correctness and physics consistency",
+      "method": "function_call",
+      "endpoint": "skills.urdf_designer.src.urdf_validator.validate",
+
+      "parameters": [
+        {
+          "name": "urdf_path",
+          "type": "string",
+          "required": true,
+          "description": "Path to URDF file"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "valid": "boolean",
+          "errors": "array",
+          "warnings": "array",
+          "joint_count": "number",
+          "link_count": "number"
+        }
+      }
+    },
+
+    "compute_forward_kinematics": {
+      "description": "Compute end-effector pose from joint angles",
+      "method": "function_call",
+      "endpoint": "skills.urdf_designer.src.kinematics.forward_kinematics",
+
+      "parameters": [
+        {
+          "name": "urdf_path",
+          "type": "string",
+          "required": true,
+          "description": "Path to URDF file"
+        },
+        {
+          "name": "joint_angles",
+          "type": "array",
+          "required": true,
+          "description": "Array of joint angles in radians"
+        },
+        {
+          "name": "end_effector_link",
+          "type": "string",
+          "required": true,
+          "description": "Name of end effector link"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "position": "array",
+          "orientation": "array"
+        }
+      }
+    }
+  },
+
+  "dependencies": {
+    "python": ["pybullet", "numpy", "lxml"],
+    "ros2": ["urdf", "kdl-parser"]
+  },
+
+  "metadata": {
+    "introduced_week": 2,
+    "complexity": "medium",
+    "estimated_learning_time_minutes": 120
+  }
+}

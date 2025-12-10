@@ -1,0 +1,395 @@
+{
+  "skill_name": "IsaacSim_Pipeline",
+  "version": "1.0.0",
+  "description": "Photorealistic simulation, GPU-accelerated physics, RL training, and synthetic data generation with Isaac Sim",
+  "functions": [
+    {
+      "name": "create_parallel_envs",
+      "description": "Create multiple parallel simulation environments for RL training",
+      "inputs": {
+        "num_envs": {
+          "type": "integer",
+          "required": true,
+          "description": "Number of parallel environments (typically 512-2048)"
+        },
+        "robot_asset_path": {
+          "type": "string",
+          "required": true,
+          "description": "Path to robot USD or URDF file"
+        },
+        "spacing": {
+          "type": "float",
+          "required": false,
+          "default": 2.0,
+          "description": "Spacing between environments in meters"
+        },
+        "device": {
+          "type": "string",
+          "required": false,
+          "default": "cuda:0",
+          "description": "GPU device for simulation"
+        }
+      },
+      "outputs": {
+        "env_prim_paths": {
+          "type": "array",
+          "description": "List of USD prim paths for each environment"
+        },
+        "robot_handles": {
+          "type": "array",
+          "description": "Handles to robot instances"
+        }
+      }
+    },
+    {
+      "name": "setup_domain_randomization",
+      "description": "Configure randomization of physics, visuals, and geometry for sim-to-real",
+      "inputs": {
+        "visual_randomization": {
+          "type": "object",
+          "required": false,
+          "description": "Visual randomization parameters",
+          "properties": {
+            "lighting": "bool - randomize light intensity/color",
+            "materials": "bool - randomize surface colors",
+            "textures": "bool - randomize texture patterns",
+            "camera": "bool - randomize camera pose"
+          }
+        },
+        "physics_randomization": {
+          "type": "object",
+          "required": false,
+          "description": "Physics randomization parameters",
+          "properties": {
+            "mass": "[min_scale, max_scale] - mass multiplier range",
+            "friction": "[min, max] - friction coefficient range",
+            "damping": "[min, max] - joint damping range",
+            "actuator_strength": "[min_scale, max_scale]"
+          }
+        },
+        "geometric_randomization": {
+          "type": "object",
+          "required": false,
+          "description": "Geometric randomization parameters",
+          "properties": {
+            "object_scale": "[min, max] - scale range",
+            "spawn_position": "[x_range, y_range, z_range]",
+            "robot_init_pose": "bool - randomize initial pose"
+          }
+        },
+        "randomization_interval": {
+          "type": "integer",
+          "required": false,
+          "default": 1,
+          "description": "Randomize every N episodes"
+        }
+      },
+      "outputs": {
+        "randomizer": {
+          "type": "object",
+          "description": "Domain randomization handler"
+        }
+      }
+    },
+    {
+      "name": "generate_synthetic_dataset",
+      "description": "Generate annotated synthetic images for ML training",
+      "inputs": {
+        "output_dir": {
+          "type": "string",
+          "required": true,
+          "description": "Directory to save generated data"
+        },
+        "num_samples": {
+          "type": "integer",
+          "required": true,
+          "description": "Number of images to generate"
+        },
+        "resolution": {
+          "type": "array",
+          "required": false,
+          "default": [640, 480],
+          "description": "Image resolution [width, height]"
+        },
+        "annotations": {
+          "type": "array",
+          "required": true,
+          "description": "List of annotation types",
+          "items": [
+            "rgb",
+            "depth",
+            "normals",
+            "semantic_segmentation",
+            "instance_segmentation",
+            "bounding_box_2d",
+            "bounding_box_3d",
+            "keypoints"
+          ]
+        },
+        "camera_randomization": {
+          "type": "object",
+          "required": false,
+          "description": "Camera pose randomization",
+          "properties": {
+            "position_range": "[[x_min, x_max], [y_min, y_max], [z_min, z_max]]",
+            "look_at": "[x, y, z] or 'random'"
+          }
+        }
+      },
+      "outputs": {
+        "dataset_path": {
+          "type": "string",
+          "description": "Path to generated dataset"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Dataset metadata (num_samples, annotations, etc.)"
+        }
+      }
+    },
+    {
+      "name": "configure_gpu_physics",
+      "description": "Configure GPU physics pipeline for performance and stability",
+      "inputs": {
+        "device_id": {
+          "type": "integer",
+          "required": false,
+          "default": 0,
+          "description": "CUDA device ID"
+        },
+        "solver_type": {
+          "type": "string",
+          "required": false,
+          "default": "TGS",
+          "description": "Solver type: TGS (faster) or PGS (more stable)"
+        },
+        "position_iterations": {
+          "type": "integer",
+          "required": false,
+          "default": 4,
+          "description": "Position solver iteration count"
+        },
+        "velocity_iterations": {
+          "type": "integer",
+          "required": false,
+          "default": 1,
+          "description": "Velocity solver iteration count"
+        },
+        "substeps": {
+          "type": "integer",
+          "required": false,
+          "default": 2,
+          "description": "Physics substeps per frame"
+        },
+        "dt": {
+          "type": "float",
+          "required": false,
+          "default": 0.0166,
+          "description": "Physics timestep in seconds (1/60 default)"
+        }
+      },
+      "outputs": {
+        "physics_config": {
+          "type": "object",
+          "description": "Physics configuration object"
+        }
+      }
+    },
+    {
+      "name": "setup_rl_task",
+      "description": "Initialize a reinforcement learning task with observations, actions, and rewards",
+      "inputs": {
+        "task_name": {
+          "type": "string",
+          "required": true,
+          "description": "Unique task identifier"
+        },
+        "num_observations": {
+          "type": "integer",
+          "required": true,
+          "description": "Observation space dimension"
+        },
+        "num_actions": {
+          "type": "integer",
+          "required": true,
+          "description": "Action space dimension"
+        },
+        "max_episode_length": {
+          "type": "integer",
+          "required": false,
+          "default": 1000,
+          "description": "Maximum steps per episode"
+        },
+        "action_scale": {
+          "type": "float",
+          "required": false,
+          "default": 1.0,
+          "description": "Scale factor for actions"
+        },
+        "control_freq": {
+          "type": "float",
+          "required": false,
+          "default": 60.0,
+          "description": "Control frequency in Hz"
+        }
+      },
+      "outputs": {
+        "task": {
+          "type": "VecEnvBase",
+          "description": "RL task environment instance"
+        }
+      }
+    },
+    {
+      "name": "export_to_ros2",
+      "description": "Create ROS2 bridge for Isaac Sim simulation",
+      "inputs": {
+        "robot_prim_path": {
+          "type": "string",
+          "required": true,
+          "description": "USD prim path to robot"
+        },
+        "topics": {
+          "type": "array",
+          "required": true,
+          "description": "List of ROS2 topics to create",
+          "items": {
+            "topic_name": "string",
+            "msg_type": "string (JointState, Image, PointCloud2, etc.)",
+            "direction": "string (publish or subscribe)"
+          }
+        },
+        "node_namespace": {
+          "type": "string",
+          "required": false,
+          "default": "/isaac_sim",
+          "description": "ROS2 node namespace"
+        }
+      },
+      "outputs": {
+        "bridge": {
+          "type": "object",
+          "description": "ROS2 bridge handler"
+        },
+        "topic_list": {
+          "type": "array",
+          "description": "List of created topic names"
+        }
+      }
+    },
+    {
+      "name": "convert_urdf_to_usd",
+      "description": "Convert URDF robot model to USD format for Isaac Sim",
+      "inputs": {
+        "urdf_path": {
+          "type": "string",
+          "required": true,
+          "description": "Path to input URDF file"
+        },
+        "usd_path": {
+          "type": "string",
+          "required": true,
+          "description": "Path for output USD file"
+        },
+        "merge_fixed_joints": {
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Merge fixed joints for optimization"
+        },
+        "convex_decomposition": {
+          "type": "boolean",
+          "required": false,
+          "default": false,
+          "description": "Perform convex decomposition on collision meshes"
+        }
+      },
+      "outputs": {
+        "usd_path": {
+          "type": "string",
+          "description": "Path to generated USD file"
+        },
+        "conversion_log": {
+          "type": "array",
+          "description": "Conversion warnings and info"
+        }
+      }
+    },
+    {
+      "name": "train_rl_policy",
+      "description": "High-level wrapper for RL policy training",
+      "inputs": {
+        "task": {
+          "type": "VecEnvBase",
+          "required": true,
+          "description": "RL task environment"
+        },
+        "algorithm": {
+          "type": "string",
+          "required": false,
+          "default": "PPO",
+          "description": "RL algorithm: PPO, SAC, TD3"
+        },
+        "total_timesteps": {
+          "type": "integer",
+          "required": false,
+          "default": 10000000,
+          "description": "Total training timesteps"
+        },
+        "checkpoint_interval": {
+          "type": "integer",
+          "required": false,
+          "default": 1000000,
+          "description": "Save checkpoint every N steps"
+        },
+        "log_dir": {
+          "type": "string",
+          "required": false,
+          "default": "./logs",
+          "description": "Directory for logs and checkpoints"
+        }
+      },
+      "outputs": {
+        "trained_policy": {
+          "type": "string",
+          "description": "Path to trained policy checkpoint"
+        },
+        "training_metrics": {
+          "type": "object",
+          "description": "Final training metrics (return, episode length, etc.)"
+        }
+      }
+    }
+  ],
+  "dependencies": [
+    "NVIDIA Isaac Sim 2023.1+",
+    "CUDA 11.8+",
+    "Python 3.10",
+    "torch",
+    "omni.isaac.core",
+    "omni.isaac.gym",
+    "omni.replicator.core",
+    "omni.isaac.ros2_bridge"
+  ],
+  "hardware_requirements": {
+    "minimum": {
+      "gpu": "RTX 3060 or better",
+      "vram": "8 GB",
+      "ram": "16 GB"
+    },
+    "recommended": {
+      "gpu": "RTX 4090 or A100",
+      "vram": "24 GB",
+      "ram": "32 GB"
+    }
+  },
+  "performance_metrics": {
+    "rl_training_speed": "5,000-40,000 steps/sec (512-2048 envs on A100)",
+    "synthetic_data_generation": "10-100 images/sec depending on quality",
+    "physics_simulation": "1000+ parallel environments on single GPU"
+  },
+  "file_formats": {
+    "input": [".urdf", ".usd", ".usda", ".usdc"],
+    "output": [".usd", ".usda", ".pth", ".onnx", ".json"]
+  }
+}

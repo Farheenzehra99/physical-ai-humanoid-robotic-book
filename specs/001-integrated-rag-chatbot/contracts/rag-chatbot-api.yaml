@@ -1,0 +1,330 @@
+openapi: 3.0.3
+info:
+  title: Integrated RAG Chatbot API
+  description: API for the Integrated RAG Chatbot embedded in interactive technical books
+  version: 1.0.0
+servers:
+  - url: https://api.rag-chatbot.example.com/v1
+    description: Production server
+  - url: http://localhost:8000/v1
+    description: Development server
+
+paths:
+  /query:
+    post:
+      summary: Submit a query to the RAG chatbot
+      description: Process a user query using either Normal Mode or Selected Text Mode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryRequest'
+      responses:
+        '200':
+          description: Successful response from the chatbot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryResponse'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Check the health status of the RAG chatbot service
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /book/import:
+    post:
+      summary: Import book content for RAG indexing
+      description: Upload book content to be indexed for RAG queries
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Book content file (PDF, DOCX, TXT, etc.)
+                metadata:
+                  type: string
+                  description: JSON string with book metadata
+      responses:
+        '200':
+          description: Book content successfully imported
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportResponse'
+        '400':
+          description: Invalid file format or metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Import process failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /export/highlights:
+    post:
+      summary: Export user-selected text highlights
+      description: Export selected text highlights with associated queries and responses
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportRequest'
+      responses:
+        '200':
+          description: Export successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportResponse'
+        '400':
+          description: Invalid export request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Export process failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    QueryRequest:
+      type: object
+      required:
+        - text
+        - mode
+      properties:
+        text:
+          type: string
+          description: The user's question or query text
+          example: "What is the main concept behind reinforcement learning?"
+        mode:
+          type: string
+          enum: [NORMAL_MODE, SELECTED_TEXT_MODE]
+          description: The operation mode for the query
+        selected_text:
+          type: string
+          description: Text selected by user for SELECTED_TEXT_MODE (required for this mode)
+          example: "Reinforcement learning is a type of machine learning where an agent learns to make decisions by taking actions in an environment to maximize cumulative reward."
+        user_id:
+          type: string
+          description: Optional user identifier for session tracking
+          example: "user-12345"
+
+    QueryResponse:
+      type: object
+      required:
+        - answer
+        - citations
+        - confidence_score
+      properties:
+        answer:
+          type: string
+          description: The chatbot's response to the query
+          example: "Reinforcement learning is a type of machine learning where an agent learns to make decisions by taking actions in an environment to maximize cumulative reward."
+        citations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Citation'
+          description: References to book content used in the response
+        confidence_score:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: Confidence score for the response
+          example: 0.92
+        response_time_ms:
+          type: integer
+          description: Processing time in milliseconds
+          example: 450
+
+    Citation:
+      type: object
+      required:
+        - chapter
+        - page
+        - text_snippet
+      properties:
+        chapter:
+          type: string
+          description: Book chapter reference
+          example: "Chapter 3: Machine Learning Fundamentals"
+        page:
+          type: integer
+          description: Page number in the book
+          example: 45
+        chunk_index:
+          type: integer
+          description: Position of the chunk in the chapter sequence
+          example: 3
+        text_snippet:
+          type: string
+          description: Quoted text from the source
+          example: "Reinforcement learning is a type of machine learning where an agent learns to make decisions..."
+        similarity_score:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: Similarity score for the matched content
+          example: 0.87
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+          example: "QUERY_PROCESSING_ERROR"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Failed to process the query due to an internal error"
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+          description: Overall health status
+          example: "healthy"
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of the health check
+          example: "2025-12-10T12:00:00Z"
+        services:
+          type: object
+          additionalProperties:
+            type: string
+            enum: [healthy, degraded, unhealthy]
+          description: Health status of individual services
+          example:
+            qdrant: "healthy"
+            neon: "healthy"
+            embedding_service: "degraded"
+
+    ImportResponse:
+      type: object
+      required:
+        - status
+        - message
+        - chunks_processed
+      properties:
+        status:
+          type: string
+          enum: [success, partial_success, failure]
+          description: Import operation status
+          example: "success"
+        message:
+          type: string
+          description: Human-readable status message
+          example: "Book content successfully imported and indexed"
+        chunks_processed:
+          type: integer
+          description: Number of text chunks created and indexed
+          example: 125
+        duration_ms:
+          type: integer
+          description: Processing time in milliseconds
+          example: 2450
+
+    ExportRequest:
+      type: object
+      required:
+        - user_id
+        - export_format
+      properties:
+        user_id:
+          type: string
+          description: User identifier
+          example: "user-12345"
+        export_format:
+          type: string
+          enum: [JSON, CSV, PDF]
+          description: Desired export format
+          example: "JSON"
+        date_range:
+          type: object
+          properties:
+            start:
+              type: string
+              format: date-time
+              description: Start date for export range
+            end:
+              type: string
+              format: date-time
+              description: End date for export range
+
+    ExportResponse:
+      type: object
+      required:
+        - status
+        - download_url
+      properties:
+        status:
+          type: string
+          enum: [ready, processing, error]
+          description: Export status
+          example: "ready"
+        download_url:
+          type: string
+          description: URL to download the exported content
+          example: "https://api.rag-chatbot.example.com/v1/download/export-abc123"
+        expires_at:
+          type: string
+          format: date-time
+          description: When the download link expires
+          example: "2025-12-11T12:00:00Z"
+        file_size_bytes:
+          type: integer
+          description: Size of the exported file in bytes
+          example: 1024000

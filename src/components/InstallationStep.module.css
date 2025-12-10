@@ -1,0 +1,191 @@
+.installationStep {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background-color: var(--ifm-card-background-color);
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stepHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.stepBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #00D9FF, #0088CC);
+  color: #0A0E27;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.stepInfo {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.stepTitle {
+  flex: 1;
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--ifm-heading-color);
+}
+
+.duration {
+  font-size: 0.85rem;
+  color: var(--ifm-color-emphasis-700);
+  font-weight: 500;
+}
+
+.stepDescription {
+  margin: 1rem 0;
+  line-height: 1.6;
+  color: var(--ifm-color-emphasis-800);
+}
+
+.warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  background-color: var(--ifm-color-warning-contrast-background);
+  border-left: 4px solid var(--ifm-color-warning);
+  border-radius: 4px;
+}
+
+.warningIcon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.platformTabs {
+  margin: 1.5rem 0;
+}
+
+.platformContent {
+  padding: 1rem 0;
+}
+
+.instructions {
+  margin-bottom: 1rem;
+  line-height: 1.6;
+  color: var(--ifm-color-emphasis-800);
+}
+
+.instructions p {
+  margin: 0.5rem 0;
+}
+
+.commands {
+  margin-top: 1rem;
+}
+
+.commandItem {
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  background-color: var(--ifm-code-background);
+  border-radius: 4px;
+  border-left: 3px solid #00D9FF;
+}
+
+.command {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.95rem;
+  color: var(--ifm-color-success);
+  background: none;
+  padding: 0;
+}
+
+.command strong {
+  font-weight: 600;
+}
+
+.commandDescription {
+  font-size: 0.9rem;
+  color: var(--ifm-color-emphasis-700);
+  margin-top: 0.25rem;
+}
+
+.outputSection {
+  margin-top: 1.5rem;
+  border-top: 2px dashed var(--ifm-color-emphasis-300);
+  padding-top: 1rem;
+}
+
+.outputToggle {
+  background: none;
+  border: none;
+  color: #00D9FF;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  transition: all 0.2s ease;
+}
+
+.outputToggle:hover {
+  color: #00B8DD;
+  text-decoration: underline;
+}
+
+.outputContent {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: var(--ifm-code-background);
+  border-radius: 4px;
+  border-left: 4px solid #00D9FF;
+}
+
+.outputContent pre {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.outputContent code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.9rem;
+  color: var(--ifm-color-success);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .installationStep {
+    padding: 1rem;
+  }
+
+  .stepHeader {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .stepBadge {
+    align-self: flex-start;
+  }
+
+  .stepTitle {
+    font-size: 1.1rem;
+  }
+
+  .duration {
+    font-size: 0.8rem;
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://physical-ai-humanoid.org/schemas/hardware-requirement.json",
+  "title": "HardwareRequirement",
+  "description": "Schema for hardware specifications required to run Isaac Sim",
+  "type": "object",
+  "required": [
+    "id",
+    "componentType",
+    "tier",
+    "specification",
+    "value"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^hw-[a-z]+-[a-z]+$",
+      "description": "Unique identifier (e.g., 'hw-gpu-recommended')"
+    },
+    "componentType": {
+      "type": "string",
+      "enum": ["gpu", "cpu", "ram", "storage", "os"],
+      "description": "Hardware component category"
+    },
+    "tier": {
+      "type": "string",
+      "enum": ["minimum", "recommended", "extreme"],
+      "description": "Performance tier"
+    },
+    "specification": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 200,
+      "description": "Human-readable specification"
+    },
+    "value": {
+      "type": "object",
+      "description": "Structured data for comparisons (schema varies by componentType)",
+      "oneOf": [
+        {
+          "title": "GPU",
+          "required": ["model", "vram", "computeCapability", "architecture"],
+          "properties": {
+            "model": {"type": "string"},
+            "vram": {"type": "number", "minimum": 6},
+            "computeCapability": {"type": "number", "minimum": 6.0},
+            "architecture": {"type": "string"}
+          }
+        },
+        {
+          "title": "CPU",
+          "required": ["cores", "clockSpeed", "architecture"],
+          "properties": {
+            "cores": {"type": "integer", "minimum": 4},
+            "clockSpeed": {"type": "number", "minimum": 2.0},
+            "architecture": {"type": "string"}
+          }
+        },
+        {
+          "title": "RAM",
+          "required": ["capacity", "type"],
+          "properties": {
+            "capacity": {"type": "integer", "minimum": 16},
+            "type": {"type": "string", "enum": ["DDR4", "DDR5"]}
+          }
+        },
+        {
+          "title": "Storage",
+          "required": ["capacity", "type"],
+          "properties": {
+            "capacity": {"type": "integer", "minimum": 100},
+            "type": {"type": "string", "enum": ["SSD", "NVMe SSD", "HDD"]}
+          }
+        },
+        {
+          "title": "OS",
+          "required": ["platform", "version"],
+          "properties": {
+            "platform": {"type": "string"},
+            "version": {"type": "string"}
+          }
+        }
+      ]
+    },
+    "estimatedPrice": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "description": "Current price in USD (null if stale or unavailable)"
+    },
+    "priceLastUpdated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When price was last verified"
+    },
+    "purchaseLinks": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "type": "object",
+        "required": ["retailer", "url", "verified", "lastChecked"],
+        "properties": {
+          "retailer": {
+            "type": "string",
+            "enum": ["Amazon", "Newegg", "Best Buy", "Micro Center", "NVIDIA Direct", "B&H Photo"]
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "verified": {
+            "type": "boolean",
+            "description": "Link checked and working"
+          },
+          "lastChecked": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Additional context or recommendations"
+    }
+  },
+  "additionalProperties": false
+}

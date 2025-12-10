@@ -1,0 +1,404 @@
+{
+  "skill_name": "VLA_Controller",
+  "version": "1.0.0",
+  "description": "Vision-Language-Action model integration for AI-driven robot control with multi-modal reasoning",
+  "functions": [
+    {
+      "name": "load_vla_model",
+      "description": "Load a pre-trained VLA model for inference",
+      "inputs": {
+        "model_name": {
+          "type": "string",
+          "required": true,
+          "description": "Model identifier: 'rt1', 'rt2', 'openvla/openvla-7b', custom path"
+        },
+        "device": {
+          "type": "string",
+          "required": false,
+          "default": "cuda",
+          "description": "Device for inference: 'cuda', 'cuda:0', 'cpu'"
+        },
+        "precision": {
+          "type": "string",
+          "required": false,
+          "default": "fp32",
+          "description": "Inference precision: 'fp32', 'fp16', 'bf16', 'int8'"
+        },
+        "cache_dir": {
+          "type": "string",
+          "required": false,
+          "description": "Directory to cache model weights"
+        }
+      },
+      "outputs": {
+        "model": {
+          "type": "VLAModel",
+          "description": "Loaded model instance"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Model metadata (input dims, action space, etc.)"
+        }
+      }
+    },
+    {
+      "name": "predict_action",
+      "description": "Predict robot action from multi-modal inputs",
+      "inputs": {
+        "image": {
+          "type": "ndarray",
+          "required": true,
+          "description": "RGB image (H, W, 3) or batch (B, H, W, 3)"
+        },
+        "instruction": {
+          "type": "string",
+          "required": true,
+          "description": "Natural language task instruction"
+        },
+        "robot_state": {
+          "type": "ndarray",
+          "required": true,
+          "description": "Current robot state (joint positions, velocities, etc.)"
+        },
+        "history": {
+          "type": "array",
+          "required": false,
+          "description": "Previous observations and actions for temporal context"
+        },
+        "temperature": {
+          "type": "float",
+          "required": false,
+          "default": 1.0,
+          "description": "Sampling temperature for stochastic policies"
+        }
+      },
+      "outputs": {
+        "action": {
+          "type": "ndarray",
+          "description": "Predicted action vector"
+        },
+        "confidence": {
+          "type": "float",
+          "description": "Confidence score (0-1)"
+        },
+        "latency_ms": {
+          "type": "float",
+          "description": "Inference latency in milliseconds"
+        }
+      }
+    },
+    {
+      "name": "fine_tune_model",
+      "description": "Fine-tune VLA model on custom robot demonstrations",
+      "inputs": {
+        "model": {
+          "type": "VLAModel",
+          "required": true,
+          "description": "Pre-trained model to fine-tune"
+        },
+        "dataset_path": {
+          "type": "string",
+          "required": true,
+          "description": "Path to demonstration dataset"
+        },
+        "epochs": {
+          "type": "integer",
+          "required": false,
+          "default": 10,
+          "description": "Number of training epochs"
+        },
+        "learning_rate": {
+          "type": "float",
+          "required": false,
+          "default": 1e-5,
+          "description": "Learning rate"
+        },
+        "batch_size": {
+          "type": "integer",
+          "required": false,
+          "default": 32,
+          "description": "Training batch size"
+        },
+        "freeze_vision": {
+          "type": "boolean",
+          "required": false,
+          "default": false,
+          "description": "Freeze vision encoder during fine-tuning"
+        },
+        "output_dir": {
+          "type": "string",
+          "required": true,
+          "description": "Directory to save fine-tuned checkpoints"
+        }
+      },
+      "outputs": {
+        "checkpoint_path": {
+          "type": "string",
+          "description": "Path to best checkpoint"
+        },
+        "training_metrics": {
+          "type": "object",
+          "description": "Training loss, validation accuracy, etc."
+        }
+      }
+    },
+    {
+      "name": "optimize_for_inference",
+      "description": "Optimize VLA model for deployment (quantization, pruning, compilation)",
+      "inputs": {
+        "model": {
+          "type": "VLAModel",
+          "required": true,
+          "description": "Model to optimize"
+        },
+        "optimization_method": {
+          "type": "string",
+          "required": false,
+          "default": "quantization",
+          "description": "Method: 'quantization', 'tensorrt', 'onnx', 'torchscript'"
+        },
+        "target_device": {
+          "type": "string",
+          "required": false,
+          "default": "cuda",
+          "description": "Target device: 'cuda', 'jetson', 'cpu'"
+        },
+        "quantization_bits": {
+          "type": "integer",
+          "required": false,
+          "default": 8,
+          "description": "Quantization precision (8 or 4 bits)"
+        },
+        "calibration_data": {
+          "type": "string",
+          "required": false,
+          "description": "Path to calibration dataset for quantization"
+        }
+      },
+      "outputs": {
+        "optimized_model_path": {
+          "type": "string",
+          "description": "Path to optimized model"
+        },
+        "speedup": {
+          "type": "float",
+          "description": "Inference speedup factor"
+        },
+        "size_reduction": {
+          "type": "float",
+          "description": "Model size reduction factor"
+        }
+      }
+    },
+    {
+      "name": "evaluate_policy",
+      "description": "Evaluate VLA policy performance in simulation or real robot",
+      "inputs": {
+        "model": {
+          "type": "VLAModel",
+          "required": true,
+          "description": "Policy to evaluate"
+        },
+        "environment": {
+          "type": "string",
+          "required": true,
+          "description": "Environment type: 'simulation', 'real_robot'"
+        },
+        "num_episodes": {
+          "type": "integer",
+          "required": false,
+          "default": 100,
+          "description": "Number of evaluation episodes"
+        },
+        "tasks": {
+          "type": "array",
+          "required": true,
+          "description": "List of task instructions to evaluate"
+        },
+        "record_video": {
+          "type": "boolean",
+          "required": false,
+          "default": false,
+          "description": "Record video of evaluation episodes"
+        }
+      },
+      "outputs": {
+        "success_rate": {
+          "type": "float",
+          "description": "Task success rate (0-1)"
+        },
+        "average_episode_length": {
+          "type": "float",
+          "description": "Average steps per episode"
+        },
+        "metrics": {
+          "type": "object",
+          "description": "Detailed metrics (per-task success, latency, etc.)"
+        },
+        "video_paths": {
+          "type": "array",
+          "description": "Paths to recorded videos (if enabled)"
+        }
+      }
+    },
+    {
+      "name": "create_ros2_node",
+      "description": "Create ROS2 node for VLA-based control",
+      "inputs": {
+        "model": {
+          "type": "VLAModel",
+          "required": true,
+          "description": "VLA model for control"
+        },
+        "node_name": {
+          "type": "string",
+          "required": false,
+          "default": "vla_controller",
+          "description": "ROS2 node name"
+        },
+        "image_topic": {
+          "type": "string",
+          "required": true,
+          "description": "Camera image topic to subscribe"
+        },
+        "state_topic": {
+          "type": "string",
+          "required": true,
+          "description": "Robot state topic to subscribe"
+        },
+        "action_topic": {
+          "type": "string",
+          "required": true,
+          "description": "Action command topic to publish"
+        },
+        "control_frequency": {
+          "type": "float",
+          "required": false,
+          "default": 10.0,
+          "description": "Control loop frequency in Hz"
+        }
+      },
+      "outputs": {
+        "node": {
+          "type": "ROS2Node",
+          "description": "Initialized ROS2 node"
+        }
+      }
+    },
+    {
+      "name": "collect_demonstrations",
+      "description": "Collect demonstration data for behavior cloning",
+      "inputs": {
+        "robot_interface": {
+          "type": "object",
+          "required": true,
+          "description": "Robot control interface"
+        },
+        "camera_interface": {
+          "type": "object",
+          "required": true,
+          "description": "Camera interface for observations"
+        },
+        "num_episodes": {
+          "type": "integer",
+          "required": true,
+          "description": "Number of demonstration episodes to collect"
+        },
+        "task_instruction": {
+          "type": "string",
+          "required": true,
+          "description": "Task description for the demonstration"
+        },
+        "output_dir": {
+          "type": "string",
+          "required": true,
+          "description": "Directory to save demonstrations"
+        },
+        "control_mode": {
+          "type": "string",
+          "required": false,
+          "default": "teleoperation",
+          "description": "Control mode: 'teleoperation', 'kinesthetic', 'recorded'"
+        }
+      },
+      "outputs": {
+        "dataset_path": {
+          "type": "string",
+          "description": "Path to collected dataset"
+        },
+        "num_demonstrations": {
+          "type": "integer",
+          "description": "Number of successful demonstrations"
+        },
+        "statistics": {
+          "type": "object",
+          "description": "Dataset statistics (episode length, action distribution)"
+        }
+      }
+    },
+    {
+      "name": "apply_action_smoothing",
+      "description": "Apply temporal smoothing to predicted actions for stable control",
+      "inputs": {
+        "actions": {
+          "type": "array",
+          "required": true,
+          "description": "Sequence of predicted actions"
+        },
+        "method": {
+          "type": "string",
+          "required": false,
+          "default": "exponential",
+          "description": "Smoothing method: 'exponential', 'moving_average', 'savgol'"
+        },
+        "window_size": {
+          "type": "integer",
+          "required": false,
+          "default": 5,
+          "description": "Smoothing window size"
+        },
+        "alpha": {
+          "type": "float",
+          "required": false,
+          "default": 0.3,
+          "description": "Smoothing factor (for exponential smoothing)"
+        }
+      },
+      "outputs": {
+        "smoothed_actions": {
+          "type": "array",
+          "description": "Smoothed action sequence"
+        }
+      }
+    }
+  ],
+  "dependencies": [
+    "torch>=2.0",
+    "transformers>=4.30",
+    "timm",
+    "opencv-python",
+    "pillow",
+    "numpy",
+    "einops",
+    "rclpy (for ROS2 integration)"
+  ],
+  "supported_models": [
+    "RT-1 (Robotics Transformer 1)",
+    "RT-2 (Robotics Transformer 2)",
+    "OpenVLA (Open Vision-Language-Action)",
+    "Gato (DeepMind Generalist Agent)",
+    "Custom VLA architectures"
+  ],
+  "action_spaces": {
+    "end_effector": "7-DOF (x, y, z, roll, pitch, yaw, gripper)",
+    "joint_control": "N-DOF joint positions or velocities",
+    "mobile_base": "2-3 DOF (vx, vy, omega)",
+    "hybrid": "Combined base + arm control"
+  },
+  "performance_targets": {
+    "inference_latency": "20-100ms per action",
+    "control_frequency": "10-20 Hz",
+    "success_rate": ">80% after fine-tuning",
+    "gpu_memory": "4-16 GB depending on model"
+  }
+}

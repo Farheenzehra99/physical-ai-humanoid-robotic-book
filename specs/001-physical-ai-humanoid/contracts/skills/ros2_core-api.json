@@ -1,0 +1,259 @@
+{
+  "skillId": "ros2_core",
+  "name": "ROS2 Core",
+  "version": "1.0.0",
+  "description": "ROS2 installation, workspace setup, and basic node management",
+  "category": "foundation",
+
+  "capabilities": [
+    "install_ros2",
+    "create_workspace",
+    "create_package",
+    "verify_installation",
+    "launch_nodes"
+  ],
+
+  "api": {
+    "install_ros2": {
+      "description": "Install ROS 2 Jazzy or Iron on Ubuntu 22.04",
+      "method": "function_call",
+      "endpoint": "skills.ros2_core.src.ros2_setup.install_ros2",
+
+      "parameters": [
+        {
+          "name": "distribution",
+          "type": "string",
+          "required": true,
+          "default": "jazzy",
+          "description": "ROS 2 distribution to install",
+          "validation": {
+            "enum": ["jazzy", "iron"]
+          }
+        },
+        {
+          "name": "install_desktop",
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Install full desktop package (includes RViz, rqt)"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "success": "boolean",
+          "distribution": "string",
+          "version": "string",
+          "installation_path": "string",
+          "errors": "array"
+        }
+      },
+
+      "errors": [
+        {
+          "code": "E001",
+          "message": "Ubuntu version not 22.04 LTS",
+          "recovery": "Upgrade to Ubuntu 22.04 LTS or use Docker container"
+        },
+        {
+          "code": "E002",
+          "message": "ROS 2 repository unreachable",
+          "recovery": "Check internet connection and retry"
+        }
+      ],
+
+      "examples": [
+        {
+          "description": "Install ROS 2 Jazzy with desktop tools",
+          "input": {
+            "distribution": "jazzy",
+            "install_desktop": true
+          },
+          "output": {
+            "success": true,
+            "distribution": "jazzy",
+            "version": "0.31.1",
+            "installation_path": "/opt/ros/jazzy",
+            "errors": []
+          }
+        }
+      ]
+    },
+
+    "create_workspace": {
+      "description": "Create a colcon workspace for ROS 2 packages",
+      "method": "function_call",
+      "endpoint": "skills.ros2_core.src.workspace_manager.create_workspace",
+
+      "parameters": [
+        {
+          "name": "workspace_path",
+          "type": "string",
+          "required": true,
+          "description": "Absolute path for workspace directory",
+          "validation": {
+            "pattern": "^/.*"
+          }
+        },
+        {
+          "name": "initialize_git",
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Initialize git repository in workspace"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "success": "boolean",
+          "workspace_path": "string",
+          "src_dir": "string",
+          "build_dir": "string",
+          "install_dir": "string"
+        }
+      },
+
+      "errors": [
+        {
+          "code": "E010",
+          "message": "Workspace path already exists",
+          "recovery": "Use a different path or delete existing directory"
+        }
+      ],
+
+      "examples": [
+        {
+          "description": "Create workspace at ~/ros2_ws",
+          "input": {
+            "workspace_path": "/home/user/ros2_ws",
+            "initialize_git": true
+          },
+          "output": {
+            "success": true,
+            "workspace_path": "/home/user/ros2_ws",
+            "src_dir": "/home/user/ros2_ws/src",
+            "build_dir": "/home/user/ros2_ws/build",
+            "install_dir": "/home/user/ros2_ws/install"
+          }
+        }
+      ]
+    },
+
+    "create_package": {
+      "description": "Create a new ROS 2 package in workspace",
+      "method": "function_call",
+      "endpoint": "skills.ros2_core.src.package_manager.create_package",
+
+      "parameters": [
+        {
+          "name": "package_name",
+          "type": "string",
+          "required": true,
+          "description": "Name of the ROS 2 package",
+          "validation": {
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        },
+        {
+          "name": "workspace_path",
+          "type": "string",
+          "required": true,
+          "description": "Path to colcon workspace"
+        },
+        {
+          "name": "dependencies",
+          "type": "array",
+          "required": false,
+          "default": ["rclpy"],
+          "description": "List of package dependencies"
+        },
+        {
+          "name": "build_type",
+          "type": "string",
+          "required": false,
+          "default": "ament_python",
+          "description": "Build system type",
+          "validation": {
+            "enum": ["ament_python", "ament_cmake"]
+          }
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "success": "boolean",
+          "package_name": "string",
+          "package_path": "string",
+          "dependencies": "array"
+        }
+      },
+
+      "examples": [
+        {
+          "description": "Create Python package with rclpy dependency",
+          "input": {
+            "package_name": "hello_ros2",
+            "workspace_path": "/home/user/ros2_ws",
+            "dependencies": ["rclpy", "std_msgs"],
+            "build_type": "ament_python"
+          },
+          "output": {
+            "success": true,
+            "package_name": "hello_ros2",
+            "package_path": "/home/user/ros2_ws/src/hello_ros2",
+            "dependencies": ["rclpy", "std_msgs"]
+          }
+        }
+      ]
+    },
+
+    "verify_installation": {
+      "description": "Verify ROS 2 installation is correct and functional",
+      "method": "function_call",
+      "endpoint": "skills.ros2_core.src.ros2_setup.verify_installation",
+
+      "parameters": [],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "success": "boolean",
+          "ros_version": "string",
+          "ros_distro": "string",
+          "tests_passed": "array",
+          "tests_failed": "array"
+        }
+      },
+
+      "examples": [
+        {
+          "description": "Verify ROS 2 installation",
+          "input": {},
+          "output": {
+            "success": true,
+            "ros_version": "2.0.0",
+            "ros_distro": "jazzy",
+            "tests_passed": ["ros2_cli", "talker_listener", "workspace_build"],
+            "tests_failed": []
+          }
+        }
+      ]
+    }
+  },
+
+  "dependencies": {
+    "system": ["ubuntu-22.04"],
+    "apt": ["curl", "gnupg", "lsb-release"],
+    "python": ["pyyaml"]
+  },
+
+  "metadata": {
+    "introduced_week": 1,
+    "complexity": "low",
+    "estimated_learning_time_minutes": 90
+  }
+}

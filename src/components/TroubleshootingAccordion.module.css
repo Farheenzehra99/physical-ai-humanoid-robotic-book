@@ -1,0 +1,253 @@
+.troubleshootingContainer {
+  margin: 2rem 0;
+}
+
+.accordionItem {
+  margin-bottom: 1rem;
+  background-color: var(--ifm-card-background-color);
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.accordionItem.expanded {
+  box-shadow: 0 4px 12px rgba(0, 217, 255, 0.1);
+}
+
+.accordionHeader {
+  width: 100%;
+  background: none;
+  border: none;
+  border-left: 4px solid transparent;
+  padding: 1.25rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.accordionHeader:hover {
+  background-color: var(--ifm-color-emphasis-100);
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.problemTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.expandIcon {
+  font-size: 0.9rem;
+  color: #00D9FF;
+  transition: transform 0.2s ease;
+}
+
+.problemText {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--ifm-heading-color);
+}
+
+.metadata {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.frequencyBadge {
+  padding: 0.25rem 0.75rem;
+  background-color: var(--ifm-color-emphasis-200);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.severityBadge {
+  padding: 0.25rem 0.75rem;
+  color: white;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.accordionContent {
+  padding: 1.5rem;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+  background-color: var(--ifm-color-emphasis-50);
+}
+
+.section {
+  margin-bottom: 1.5rem;
+}
+
+.section:last-child {
+  margin-bottom: 0;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--ifm-heading-color);
+}
+
+.causeText {
+  padding: 1rem;
+  background-color: var(--ifm-alert-background-color);
+  border-left: 4px solid var(--ifm-color-warning);
+  border-radius: 4px;
+  margin: 0;
+}
+
+.symptomsList {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.symptomsList li {
+  margin: 0.5rem 0;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.solution {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background-color: var(--ifm-card-background-color);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 6px;
+}
+
+.solution:last-child {
+  margin-bottom: 0;
+}
+
+.definitiveSolution {
+  border-left: 4px solid #00D9FF;
+  background-color: var(--ifm-color-primary-lightest);
+}
+
+.solutionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.solutionNumber {
+  font-weight: 600;
+  color: var(--ifm-color-primary);
+}
+
+.definitiveLabel {
+  padding: 0.25rem 0.75rem;
+  background-color: #00D9FF;
+  color: #0A0E27;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.solutionDescription {
+  margin: 0.75rem 0;
+  line-height: 1.6;
+}
+
+.commandsSection {
+  margin: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.command {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background-color: var(--ifm-code-background);
+  border-radius: 4px;
+}
+
+.commandEmoji {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.commandCode {
+  flex: 1;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.9rem;
+  color: var(--ifm-color-success);
+}
+
+.expectedResult {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background-color: var(--ifm-color-success-contrast-background);
+  border-left: 4px solid var(--ifm-color-success);
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.relatedErrors {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: var(--ifm-card-background-color);
+  border: 1px dashed var(--ifm-color-emphasis-300);
+  border-radius: 4px;
+}
+
+.relatedErrors summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--ifm-color-primary);
+}
+
+.relatedErrors ul {
+  margin-top: 0.75rem;
+  padding-left: 1.5rem;
+}
+
+.relatedErrors code {
+  font-size: 0.85rem;
+  color: var(--ifm-color-danger);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .accordionHeader {
+    padding: 1rem;
+  }
+
+  .headerContent {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .metadata {
+    align-self: flex-start;
+  }
+
+  .problemText {
+    font-size: 0.95rem;
+  }
+
+  .accordionContent {
+    padding: 1rem;
+  }
+
+  .command {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}

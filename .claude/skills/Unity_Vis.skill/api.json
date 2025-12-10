@@ -1,0 +1,359 @@
+{
+  "skill_name": "Unity_Vis",
+  "version": "1.0.0",
+  "description": "3D visualization, HRI environments, VR/AR integration, and photorealistic rendering in Unity",
+  "functions": [
+    {
+      "name": "import_urdf",
+      "description": "Import URDF robot model into Unity scene with articulation",
+      "inputs": {
+        "urdf_path": {
+          "type": "string",
+          "required": true,
+          "description": "Path to URDF file"
+        },
+        "scale": {
+          "type": "float",
+          "required": false,
+          "default": 1.0,
+          "description": "Scale factor for imported model"
+        },
+        "use_articulation_body": {
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Use ArticulationBody for joints (recommended)"
+        },
+        "import_materials": {
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Import material definitions from URDF"
+        }
+      },
+      "outputs": {
+        "root_object": {
+          "type": "GameObject",
+          "description": "Root GameObject of imported robot"
+        },
+        "joint_list": {
+          "type": "array",
+          "description": "List of articulation joints"
+        }
+      }
+    },
+    {
+      "name": "subscribe_joint_states",
+      "description": "Subscribe to ROS2 joint state topic and update robot visualization",
+      "inputs": {
+        "topic_name": {
+          "type": "string",
+          "required": true,
+          "description": "ROS2 topic name (e.g., '/joint_states')"
+        },
+        "robot_object": {
+          "type": "GameObject",
+          "required": true,
+          "description": "Root GameObject of robot to update"
+        },
+        "update_rate": {
+          "type": "float",
+          "required": false,
+          "default": 30.0,
+          "description": "Visualization update rate in Hz"
+        }
+      },
+      "outputs": {
+        "subscription": {
+          "type": "ISubscription",
+          "description": "ROS2 subscription handle"
+        }
+      }
+    },
+    {
+      "name": "create_environment",
+      "description": "Generate an environment scene with objects and lighting",
+      "inputs": {
+        "environment_type": {
+          "type": "string",
+          "required": true,
+          "description": "Environment type: living_room, office, warehouse, outdoor, custom"
+        },
+        "size": {
+          "type": "object",
+          "required": false,
+          "description": "Environment dimensions",
+          "properties": {
+            "width": "float (meters)",
+            "length": "float (meters)",
+            "height": "float (meters)"
+          }
+        },
+        "objects": {
+          "type": "array",
+          "required": false,
+          "description": "List of objects to place in environment",
+          "items": {
+            "type": "string",
+            "description": "Object type (table, chair, box, etc.)"
+          }
+        },
+        "lighting": {
+          "type": "string",
+          "required": false,
+          "default": "default",
+          "description": "Lighting preset: default, bright, dim, natural, studio"
+        }
+      },
+      "outputs": {
+        "scene": {
+          "type": "Scene",
+          "description": "Unity scene object"
+        },
+        "object_list": {
+          "type": "array",
+          "description": "List of spawned GameObjects"
+        }
+      }
+    },
+    {
+      "name": "setup_camera",
+      "description": "Configure camera for visualization or data capture",
+      "inputs": {
+        "camera_mode": {
+          "type": "string",
+          "required": true,
+          "description": "Mode: follow, fixed, orbit, first_person, multi_view"
+        },
+        "target": {
+          "type": "GameObject",
+          "required": false,
+          "description": "Target object for follow/orbit modes"
+        },
+        "resolution": {
+          "type": "object",
+          "required": false,
+          "description": "Camera resolution",
+          "properties": {
+            "width": "integer",
+            "height": "integer"
+          }
+        },
+        "field_of_view": {
+          "type": "float",
+          "required": false,
+          "default": 60.0,
+          "description": "Camera field of view in degrees"
+        },
+        "render_mode": {
+          "type": "string",
+          "required": false,
+          "default": "color",
+          "description": "Render mode: color, depth, segmentation, normals"
+        }
+      },
+      "outputs": {
+        "camera": {
+          "type": "Camera",
+          "description": "Configured camera component"
+        },
+        "ros_publisher": {
+          "type": "IPublisher",
+          "description": "ROS2 publisher for camera data (if enabled)"
+        }
+      }
+    },
+    {
+      "name": "enable_vr_mode",
+      "description": "Initialize VR rendering and interaction",
+      "inputs": {
+        "headset_type": {
+          "type": "string",
+          "required": true,
+          "description": "VR headset: oculus, vive, index, generic"
+        },
+        "interaction_mode": {
+          "type": "string",
+          "required": false,
+          "default": "controller",
+          "description": "Interaction: controller, hand_tracking, gaze"
+        },
+        "enable_teleportation": {
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Enable teleportation locomotion"
+        },
+        "tracking_origin": {
+          "type": "string",
+          "required": false,
+          "default": "floor",
+          "description": "Tracking origin: floor, eye_level"
+        }
+      },
+      "outputs": {
+        "vr_rig": {
+          "type": "GameObject",
+          "description": "VR camera rig GameObject"
+        },
+        "controllers": {
+          "type": "array",
+          "description": "List of controller GameObjects"
+        }
+      }
+    },
+    {
+      "name": "create_ui_panel",
+      "description": "Create a UI control panel for robot interaction",
+      "inputs": {
+        "panel_type": {
+          "type": "string",
+          "required": true,
+          "description": "Panel type: joint_control, status_display, teleoperation, custom"
+        },
+        "robot_object": {
+          "type": "GameObject",
+          "required": true,
+          "description": "Robot GameObject to control"
+        },
+        "position": {
+          "type": "string",
+          "required": false,
+          "default": "bottom_left",
+          "description": "UI position: top_left, top_right, bottom_left, bottom_right, center"
+        },
+        "style": {
+          "type": "string",
+          "required": false,
+          "default": "modern",
+          "description": "UI style preset: modern, minimal, industrial, futuristic"
+        }
+      },
+      "outputs": {
+        "canvas": {
+          "type": "Canvas",
+          "description": "UI Canvas component"
+        },
+        "controls": {
+          "type": "object",
+          "description": "Dictionary of UI control elements"
+        }
+      }
+    },
+    {
+      "name": "record_video",
+      "description": "Capture video recording of the Unity scene",
+      "inputs": {
+        "output_path": {
+          "type": "string",
+          "required": true,
+          "description": "Output video file path"
+        },
+        "duration": {
+          "type": "float",
+          "required": false,
+          "description": "Recording duration in seconds (omit for manual stop)"
+        },
+        "resolution": {
+          "type": "object",
+          "required": false,
+          "description": "Video resolution",
+          "properties": {
+            "width": "integer (e.g., 1920)",
+            "height": "integer (e.g., 1080)"
+          }
+        },
+        "framerate": {
+          "type": "integer",
+          "required": false,
+          "default": 30,
+          "description": "Target framerate for recording"
+        },
+        "format": {
+          "type": "string",
+          "required": false,
+          "default": "mp4",
+          "description": "Video format: mp4, avi, webm"
+        }
+      },
+      "outputs": {
+        "video_path": {
+          "type": "string",
+          "description": "Path to saved video file"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Recording metadata (duration, frame count, etc.)"
+        }
+      }
+    },
+    {
+      "name": "spawn_interactive_object",
+      "description": "Spawn an object that users can interact with (grab, move, etc.)",
+      "inputs": {
+        "object_type": {
+          "type": "string",
+          "required": true,
+          "description": "Object type: cube, sphere, cylinder, custom_mesh"
+        },
+        "position": {
+          "type": "array",
+          "required": true,
+          "description": "Spawn position [x, y, z]"
+        },
+        "properties": {
+          "type": "object",
+          "required": false,
+          "description": "Object properties",
+          "properties": {
+            "mass": "float (kg)",
+            "scale": "[x, y, z]",
+            "color": "Color or hex string",
+            "physics": "boolean (enable physics)",
+            "grabbable": "boolean (user can grab)"
+          }
+        }
+      },
+      "outputs": {
+        "object": {
+          "type": "GameObject",
+          "description": "Spawned GameObject"
+        },
+        "ros_publisher": {
+          "type": "IPublisher",
+          "description": "Publisher for object state (if ROS integration enabled)"
+        }
+      }
+    }
+  ],
+  "dependencies": [
+    "Unity 2021.3 LTS+",
+    "Unity Robotics Hub",
+    "ROS-TCP-Connector",
+    "URDF Importer",
+    "TextMeshPro",
+    "Universal Render Pipeline (optional)",
+    "XR Plugin Management (for VR/AR)"
+  ],
+  "supported_ros_messages": [
+    "sensor_msgs/JointState",
+    "geometry_msgs/Pose",
+    "geometry_msgs/TransformStamped",
+    "sensor_msgs/Image",
+    "sensor_msgs/PointCloud2",
+    "std_msgs/String",
+    "std_msgs/Bool"
+  ],
+  "platforms": [
+    "Windows",
+    "macOS",
+    "Linux",
+    "VR Headsets (Oculus, Vive, Index)",
+    "AR Devices (HoloLens, mobile)"
+  ],
+  "performance_targets": {
+    "desktop": "60+ FPS at 1080p",
+    "vr": "90+ FPS per eye",
+    "mobile": "30+ FPS at 720p"
+  }
+}

@@ -1,0 +1,179 @@
+{
+  "skillId": "isaac_sim_pipeline",
+  "name": "Isaac Sim Pipeline",
+  "version": "1.0.0",
+  "description": "GPU-accelerated parallel environment creation and RL training pipeline",
+  "category": "ai",
+
+  "capabilities": [
+    "create_parallel_envs",
+    "train_policy",
+    "evaluate_policy",
+    "export_policy"
+  ],
+
+  "api": {
+    "create_parallel_envs": {
+      "description": "Create parallel Isaac Sim environments for RL training",
+      "method": "function_call",
+      "endpoint": "skills.isaac_sim_pipeline.src.parallel_env_manager.create_envs",
+
+      "parameters": [
+        {
+          "name": "env_count",
+          "type": "number",
+          "required": true,
+          "description": "Number of parallel environments",
+          "validation": {
+            "min": 1,
+            "max": 4096
+          }
+        },
+        {
+          "name": "robot_urdf_path",
+          "type": "string",
+          "required": true,
+          "description": "Path to robot URDF"
+        },
+        {
+          "name": "task_config",
+          "type": "object",
+          "required": true,
+          "description": "Task configuration (rewards, termination conditions)"
+        },
+        {
+          "name": "domain_randomization",
+          "type": "object",
+          "required": false,
+          "default": {},
+          "description": "Randomization parameters (friction, mass, lighting)"
+        },
+        {
+          "name": "headless",
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Run without GUI for faster training"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "success": "boolean",
+          "env_count": "number",
+          "real_time_factor": "number",
+          "gpu_memory_mb": "number"
+        }
+      }
+    },
+
+    "train_policy": {
+      "description": "Train PPO policy using parallel environments",
+      "method": "function_call",
+      "endpoint": "skills.isaac_sim_pipeline.src.rl_trainer.train_ppo",
+
+      "parameters": [
+        {
+          "name": "env_manager",
+          "type": "object",
+          "required": true,
+          "description": "Environment manager instance from create_parallel_envs"
+        },
+        {
+          "name": "total_timesteps",
+          "type": "number",
+          "required": true,
+          "description": "Total training timesteps",
+          "validation": {
+            "min": 10000,
+            "max": 100000000
+          }
+        },
+        {
+          "name": "learning_rate",
+          "type": "number",
+          "required": false,
+          "default": 0.0003,
+          "description": "PPO learning rate"
+        },
+        {
+          "name": "checkpoint_frequency",
+          "type": "number",
+          "required": false,
+          "default": 100000,
+          "description": "Save checkpoint every N timesteps"
+        },
+        {
+          "name": "tensorboard_log",
+          "type": "string",
+          "required": false,
+          "default": "./logs",
+          "description": "Path for TensorBoard logs"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "success": "boolean",
+          "final_reward_mean": "number",
+          "training_time_hours": "number",
+          "policy_path": "string"
+        }
+      }
+    },
+
+    "evaluate_policy": {
+      "description": "Evaluate trained policy in simulation",
+      "method": "function_call",
+      "endpoint": "skills.isaac_sim_pipeline.src.policy_evaluator.evaluate",
+
+      "parameters": [
+        {
+          "name": "policy_path",
+          "type": "string",
+          "required": true,
+          "description": "Path to trained policy (.zip file)"
+        },
+        {
+          "name": "num_episodes",
+          "type": "number",
+          "required": false,
+          "default": 100,
+          "description": "Number of evaluation episodes"
+        },
+        {
+          "name": "render",
+          "type": "boolean",
+          "required": false,
+          "default": false,
+          "description": "Render evaluation in GUI"
+        }
+      ],
+
+      "returns": {
+        "type": "object",
+        "schema": {
+          "mean_reward": "number",
+          "std_reward": "number",
+          "success_rate": "number",
+          "mean_episode_length": "number"
+        }
+      }
+    }
+  },
+
+  "dependencies": {
+    "python": ["torch>=2.0", "stable-baselines3>=2.2", "gymnasium>=0.29"],
+    "system": ["nvidia-isaac-sim-2024.1"]
+  },
+
+  "metadata": {
+    "introduced_week": 4,
+    "complexity": "high",
+    "estimated_learning_time_minutes": 240,
+    "gpu_required": true,
+    "min_vram_gb": 8
+  }
+}

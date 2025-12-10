@@ -1,0 +1,297 @@
+{
+  "skill_name": "URDF_Designer",
+  "version": "1.0.0",
+  "description": "Design and validate URDF robot models with kinematic chains and joint limits",
+  "functions": [
+    {
+      "name": "create_link",
+      "description": "Create a URDF link element with visual, collision, and inertial properties",
+      "inputs": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Unique link name"
+        },
+        "visual_geometry": {
+          "type": "object",
+          "required": true,
+          "description": "Visual geometry (box, cylinder, sphere, mesh)",
+          "properties": {
+            "type": "string (box|cylinder|sphere|mesh)",
+            "parameters": "dict of geometry-specific parameters"
+          }
+        },
+        "collision_geometry": {
+          "type": "object",
+          "required": true,
+          "description": "Collision geometry (typically simpler than visual)"
+        },
+        "mass": {
+          "type": "float",
+          "required": true,
+          "description": "Link mass in kilograms"
+        },
+        "inertia": {
+          "type": "object",
+          "required": true,
+          "description": "Inertia tensor components",
+          "properties": {
+            "ixx": "float",
+            "iyy": "float",
+            "izz": "float",
+            "ixy": "float",
+            "ixz": "float",
+            "iyz": "float"
+          }
+        },
+        "material": {
+          "type": "object",
+          "required": false,
+          "description": "Material name and RGBA color"
+        }
+      },
+      "outputs": {
+        "link_xml": {
+          "type": "string",
+          "description": "URDF XML string for the link"
+        }
+      }
+    },
+    {
+      "name": "create_joint",
+      "description": "Create a URDF joint connecting two links",
+      "inputs": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Unique joint name"
+        },
+        "joint_type": {
+          "type": "string",
+          "required": true,
+          "description": "Joint type: revolute, prismatic, fixed, continuous, floating, planar"
+        },
+        "parent_link": {
+          "type": "string",
+          "required": true,
+          "description": "Parent link name"
+        },
+        "child_link": {
+          "type": "string",
+          "required": true,
+          "description": "Child link name"
+        },
+        "origin": {
+          "type": "object",
+          "required": true,
+          "description": "Transform from parent to child",
+          "properties": {
+            "xyz": "array [x, y, z] in meters",
+            "rpy": "array [roll, pitch, yaw] in radians"
+          }
+        },
+        "axis": {
+          "type": "array",
+          "required": false,
+          "description": "Joint axis [x, y, z], default [1, 0, 0]"
+        },
+        "limits": {
+          "type": "object",
+          "required": false,
+          "description": "Joint limits (required for revolute/prismatic)",
+          "properties": {
+            "lower": "float (position lower bound)",
+            "upper": "float (position upper bound)",
+            "effort": "float (max effort/torque)",
+            "velocity": "float (max velocity)"
+          }
+        },
+        "dynamics": {
+          "type": "object",
+          "required": false,
+          "description": "Joint dynamics",
+          "properties": {
+            "damping": "float",
+            "friction": "float"
+          }
+        }
+      },
+      "outputs": {
+        "joint_xml": {
+          "type": "string",
+          "description": "URDF XML string for the joint"
+        }
+      }
+    },
+    {
+      "name": "calculate_inertia",
+      "description": "Calculate inertia tensor for common geometric shapes",
+      "inputs": {
+        "mass": {
+          "type": "float",
+          "required": true,
+          "description": "Mass in kilograms"
+        },
+        "geometry_type": {
+          "type": "string",
+          "required": true,
+          "description": "Shape type: box, cylinder, sphere"
+        },
+        "dimensions": {
+          "type": "object",
+          "required": true,
+          "description": "Shape dimensions",
+          "properties": {
+            "box": "[width, depth, height]",
+            "cylinder": "[radius, length]",
+            "sphere": "[radius]"
+          }
+        }
+      },
+      "outputs": {
+        "inertia": {
+          "type": "object",
+          "description": "Inertia tensor {ixx, iyy, izz, ixy, ixz, iyz}"
+        }
+      }
+    },
+    {
+      "name": "validate_urdf",
+      "description": "Validate URDF file for syntax and structural errors",
+      "inputs": {
+        "file_path": {
+          "type": "string",
+          "required": true,
+          "description": "Path to URDF file"
+        },
+        "check_collision": {
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Check for collision geometry"
+        },
+        "check_inertia": {
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Check for inertial properties"
+        }
+      },
+      "outputs": {
+        "valid": {
+          "type": "boolean",
+          "description": "Whether URDF is valid"
+        },
+        "errors": {
+          "type": "array",
+          "description": "List of error messages"
+        },
+        "warnings": {
+          "type": "array",
+          "description": "List of warning messages"
+        }
+      }
+    },
+    {
+      "name": "create_humanoid_chain",
+      "description": "Generate a standard humanoid kinematic chain (leg, arm, etc.)",
+      "inputs": {
+        "chain_type": {
+          "type": "string",
+          "required": true,
+          "description": "Chain type: leg, arm, torso, hand"
+        },
+        "side": {
+          "type": "string",
+          "required": false,
+          "description": "left or right (for bilateral chains)"
+        },
+        "dof_count": {
+          "type": "integer",
+          "required": true,
+          "description": "Degrees of freedom (e.g., 6 for leg, 7 for arm)"
+        },
+        "base_link": {
+          "type": "string",
+          "required": true,
+          "description": "Parent link to attach chain to"
+        },
+        "link_lengths": {
+          "type": "array",
+          "required": true,
+          "description": "Length of each link segment in meters"
+        },
+        "joint_limits": {
+          "type": "array",
+          "required": true,
+          "description": "Array of limit objects for each joint"
+        }
+      },
+      "outputs": {
+        "links": {
+          "type": "array",
+          "description": "Array of link XML strings"
+        },
+        "joints": {
+          "type": "array",
+          "description": "Array of joint XML strings"
+        },
+        "end_effector_name": {
+          "type": "string",
+          "description": "Name of the final link in the chain"
+        }
+      }
+    },
+    {
+      "name": "urdf_to_xacro",
+      "description": "Convert static URDF to parametric Xacro format",
+      "inputs": {
+        "urdf_file": {
+          "type": "string",
+          "required": true,
+          "description": "Input URDF file path"
+        },
+        "output_file": {
+          "type": "string",
+          "required": true,
+          "description": "Output Xacro file path"
+        },
+        "parameters": {
+          "type": "object",
+          "required": false,
+          "description": "Parameters to extract as Xacro properties"
+        }
+      },
+      "outputs": {
+        "xacro_file": {
+          "type": "string",
+          "description": "Path to generated Xacro file"
+        },
+        "parameter_list": {
+          "type": "array",
+          "description": "List of extracted parameters"
+        }
+      }
+    }
+  ],
+  "dependencies": [
+    "urdf_parser_py",
+    "xacro",
+    "xml.etree.ElementTree",
+    "numpy"
+  ],
+  "tools": [
+    "check_urdf (ROS2 command-line tool)",
+    "urdf_to_graphviz (visualization)",
+    "rviz2 (visualization)"
+  ],
+  "file_formats": {
+    "input": [".urdf", ".xacro", ".xml"],
+    "output": [".urdf", ".xacro"]
+  },
+  "standards": [
+    "REP-103 (Standard Units of Measure)",
+    "REP-105 (Coordinate Frames)",
+    "URDF XML Schema"
+  ]
+}

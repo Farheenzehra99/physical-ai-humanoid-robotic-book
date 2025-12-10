@@ -1,0 +1,225 @@
+{
+  "skill_name": "ROS2_Core",
+  "version": "1.0.0",
+  "description": "Core ROS2 functionality for nodes, topics, services, and Python control",
+  "functions": [
+    {
+      "name": "create_node",
+      "description": "Initialize a ROS2 node with specified name and namespace",
+      "inputs": {
+        "node_name": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the ROS2 node"
+        },
+        "namespace": {
+          "type": "string",
+          "required": false,
+          "default": "/",
+          "description": "Namespace for the node"
+        },
+        "enable_logging": {
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Enable console logging"
+        }
+      },
+      "outputs": {
+        "node_instance": {
+          "type": "Node",
+          "description": "Initialized ROS2 node instance"
+        },
+        "status": {
+          "type": "string",
+          "description": "Initialization status"
+        }
+      }
+    },
+    {
+      "name": "create_publisher",
+      "description": "Create a topic publisher for specified message type",
+      "inputs": {
+        "topic_name": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the topic to publish on"
+        },
+        "message_type": {
+          "type": "string",
+          "required": true,
+          "description": "ROS2 message type (e.g., 'geometry_msgs/Twist')"
+        },
+        "qos_profile": {
+          "type": "integer",
+          "required": false,
+          "default": 10,
+          "description": "Quality of Service queue size"
+        }
+      },
+      "outputs": {
+        "publisher": {
+          "type": "Publisher",
+          "description": "Publisher object for the topic"
+        }
+      }
+    },
+    {
+      "name": "create_subscription",
+      "description": "Create a topic subscriber with callback function",
+      "inputs": {
+        "topic_name": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the topic to subscribe to"
+        },
+        "message_type": {
+          "type": "string",
+          "required": true,
+          "description": "ROS2 message type to receive"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Callback function to process messages"
+        },
+        "qos_profile": {
+          "type": "integer",
+          "required": false,
+          "default": 10,
+          "description": "Quality of Service queue size"
+        }
+      },
+      "outputs": {
+        "subscription": {
+          "type": "Subscription",
+          "description": "Subscription object for the topic"
+        }
+      }
+    },
+    {
+      "name": "create_service",
+      "description": "Create a service server for request/response communication",
+      "inputs": {
+        "service_name": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the service"
+        },
+        "service_type": {
+          "type": "string",
+          "required": true,
+          "description": "ROS2 service type (e.g., 'std_srvs/SetBool')"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Service handler function"
+        }
+      },
+      "outputs": {
+        "service": {
+          "type": "Service",
+          "description": "Service server instance"
+        }
+      }
+    },
+    {
+      "name": "create_client",
+      "description": "Create a service client to call remote services",
+      "inputs": {
+        "service_name": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the service to call"
+        },
+        "service_type": {
+          "type": "string",
+          "required": true,
+          "description": "ROS2 service type"
+        },
+        "timeout_sec": {
+          "type": "float",
+          "required": false,
+          "default": 5.0,
+          "description": "Service call timeout in seconds"
+        }
+      },
+      "outputs": {
+        "client": {
+          "type": "Client",
+          "description": "Service client instance"
+        }
+      }
+    },
+    {
+      "name": "broadcast_transform",
+      "description": "Broadcast a transform between coordinate frames",
+      "inputs": {
+        "parent_frame": {
+          "type": "string",
+          "required": true,
+          "description": "Parent frame ID"
+        },
+        "child_frame": {
+          "type": "string",
+          "required": true,
+          "description": "Child frame ID"
+        },
+        "translation": {
+          "type": "array",
+          "required": true,
+          "description": "Translation [x, y, z] in meters"
+        },
+        "rotation": {
+          "type": "array",
+          "required": true,
+          "description": "Rotation quaternion [x, y, z, w]"
+        }
+      },
+      "outputs": {
+        "success": {
+          "type": "boolean",
+          "description": "Transform broadcast success status"
+        }
+      }
+    },
+    {
+      "name": "lookup_transform",
+      "description": "Look up transform between two coordinate frames",
+      "inputs": {
+        "target_frame": {
+          "type": "string",
+          "required": true,
+          "description": "Target frame ID"
+        },
+        "source_frame": {
+          "type": "string",
+          "required": true,
+          "description": "Source frame ID"
+        },
+        "timeout_sec": {
+          "type": "float",
+          "required": false,
+          "default": 1.0,
+          "description": "Lookup timeout in seconds"
+        }
+      },
+      "outputs": {
+        "transform": {
+          "type": "TransformStamped",
+          "description": "Transform from source to target frame"
+        }
+      }
+    }
+  ],
+  "dependencies": [
+    "rclpy",
+    "std_msgs",
+    "sensor_msgs",
+    "geometry_msgs",
+    "tf2_ros"
+  ],
+  "ros_version": "ROS2 Humble/Iron/Rolling",
+  "python_version": ">=3.8"
+}

@@ -1,0 +1,104 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://physical-ai-humanoid.org/schemas/troubleshooting-entry.json",
+  "title": "TroubleshootingEntry",
+  "description": "Schema for documenting common problems and solutions",
+  "type": "object",
+  "required": [
+    "id",
+    "problem",
+    "cause",
+    "symptoms",
+    "solutions",
+    "frequency",
+    "severity"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^ts-[a-z0-9-]+$",
+      "description": "Unique identifier (e.g., 'ts-cuda-init-failed')"
+    },
+    "problem": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 100,
+      "description": "Short problem title as user experiences it"
+    },
+    "cause": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 500,
+      "description": "Explanation of root cause"
+    },
+    "symptoms": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      },
+      "description": "How user recognizes this issue"
+    },
+    "solutions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["stepNumber", "description", "expectedResult", "isDefinitive"],
+        "properties": {
+          "stepNumber": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Order of solution attempts"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 500,
+            "description": "What to do"
+          },
+          "commands": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["command", "shell", "platform"],
+              "properties": {
+                "command": {"type": "string"},
+                "shell": {"type": "string", "enum": ["bash", "powershell", "sh", "cmd"]},
+                "platform": {"type": "string", "enum": ["ubuntu", "windows", "macos", "all"]},
+                "emojiPrefix": {"type": "string"}
+              }
+            }
+          },
+          "expectedResult": {
+            "type": "string",
+            "description": "What should happen after applying solution"
+          },
+          "isDefinitive": {
+            "type": "boolean",
+            "description": "True if this solves the problem, false if workaround"
+          }
+        }
+      },
+      "description": "Ordered list of remedies (most likely to succeed first)"
+    },
+    "relatedErrors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Error messages this entry applies to"
+    },
+    "frequency": {
+      "type": "string",
+      "enum": ["common", "occasional", "rare"],
+      "description": "How often users encounter this"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["blocker", "major", "minor"],
+      "description": "Impact on user progress"
+    }
+  },
+  "additionalProperties": false
+}

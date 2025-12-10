@@ -1,0 +1,127 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://physical-ai-humanoid.org/schemas/installation-step.json",
+  "title": "InstallationStep",
+  "description": "Schema for a single step in the installation procedure",
+  "type": "object",
+  "required": [
+    "id",
+    "stepNumber",
+    "title",
+    "description",
+    "platform"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^step-[a-z0-9-]+$",
+      "description": "Unique identifier"
+    },
+    "stepNumber": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Sequence number (must be sequential within parent page)"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 50,
+      "description": "Short step description"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 1000,
+      "description": "Detailed instructions in markdown"
+    },
+    "platform": {
+      "type": "string",
+      "enum": ["ubuntu", "windows", "macos", "both"],
+      "description": "Target operating system"
+    },
+    "commands": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/TerminalCommand"
+      },
+      "description": "Shell commands to execute"
+    },
+    "expectedOutput": {
+      "type": "string",
+      "description": "What user should see after completing step"
+    },
+    "estimatedDuration": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Estimated time in seconds"
+    },
+    "prerequisites": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^step-[a-z0-9-]+$"
+      },
+      "description": "IDs of prerequisite steps"
+    },
+    "isOptional": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this step can be skipped"
+    },
+    "warningMessage": {
+      "type": ["string", "null"],
+      "maxLength": 200,
+      "description": "Caution or important note for users"
+    }
+  },
+  "definitions": {
+    "TerminalCommand": {
+      "type": "object",
+      "required": ["id", "command", "shell", "platform", "emojiPrefix"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^cmd-[a-z0-9-]+$"
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "shell": {
+          "type": "string",
+          "enum": ["bash", "powershell", "sh", "cmd"]
+        },
+        "platform": {
+          "type": "string",
+          "enum": ["ubuntu", "windows", "macos", "all"]
+        },
+        "emojiPrefix": {
+          "type": "string",
+          "enum": ["🔧", "📦", "⬇️", "🚀", "✅", "🧪", "🔍"]
+        },
+        "description": {
+          "type": "string",
+          "description": "What the command does"
+        },
+        "requiresSudo": {
+          "type": "boolean",
+          "default": false
+        },
+        "workingDirectory": {
+          "type": ["string", "null"],
+          "description": "Directory where command should be run"
+        },
+        "expectedReturnCode": {
+          "type": "integer",
+          "default": 0
+        },
+        "canFail": {
+          "type": "boolean",
+          "default": false,
+          "description": "If true, failure doesn't block next steps"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

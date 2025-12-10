@@ -1,0 +1,431 @@
+{
+  "skill_name": "Edge_Deploy",
+  "version": "1.0.0",
+  "description": "Model optimization and deployment to NVIDIA Jetson edge devices with TensorRT and real-time constraints",
+  "functions": [
+    {
+      "name": "export_to_onnx",
+      "description": "Export PyTorch model to ONNX format",
+      "inputs": {
+        "model": {
+          "type": "torch.nn.Module",
+          "required": true,
+          "description": "PyTorch model to export"
+        },
+        "sample_inputs": {
+          "type": "dict",
+          "required": true,
+          "description": "Dictionary of sample inputs for tracing"
+        },
+        "output_path": {
+          "type": "string",
+          "required": true,
+          "description": "Path for output ONNX file"
+        },
+        "opset_version": {
+          "type": "integer",
+          "required": false,
+          "default": 15,
+          "description": "ONNX opset version"
+        },
+        "dynamic_axes": {
+          "type": "dict",
+          "required": false,
+          "description": "Dynamic axes for variable batch size"
+        }
+      },
+      "outputs": {
+        "onnx_path": {
+          "type": "string",
+          "description": "Path to exported ONNX file"
+        },
+        "validation_report": {
+          "type": "object",
+          "description": "ONNX validation results"
+        }
+      }
+    },
+    {
+      "name": "convert_to_tensorrt",
+      "description": "Convert ONNX model to TensorRT engine",
+      "inputs": {
+        "onnx_path": {
+          "type": "string",
+          "required": true,
+          "description": "Path to ONNX model file"
+        },
+        "engine_path": {
+          "type": "string",
+          "required": true,
+          "description": "Output path for TensorRT engine"
+        },
+        "precision": {
+          "type": "string",
+          "required": false,
+          "default": "fp16",
+          "description": "Precision mode: 'fp32', 'fp16', 'int8'"
+        },
+        "max_batch_size": {
+          "type": "integer",
+          "required": false,
+          "default": 1,
+          "description": "Maximum batch size for inference"
+        },
+        "workspace_size_gb": {
+          "type": "float",
+          "required": false,
+          "default": 1.0,
+          "description": "Workspace memory in GB"
+        },
+        "calibration_data": {
+          "type": "string",
+          "required": false,
+          "description": "Path to calibration dataset (for INT8)"
+        }
+      },
+      "outputs": {
+        "engine_path": {
+          "type": "string",
+          "description": "Path to TensorRT engine file"
+        },
+        "build_log": {
+          "type": "array",
+          "description": "Build warnings and information"
+        }
+      }
+    },
+    {
+      "name": "quantize_model",
+      "description": "Apply quantization to model for faster inference",
+      "inputs": {
+        "model": {
+          "type": "torch.nn.Module",
+          "required": true,
+          "description": "Model to quantize"
+        },
+        "method": {
+          "type": "string",
+          "required": false,
+          "default": "dynamic",
+          "description": "Quantization method: 'dynamic', 'static', 'qat'"
+        },
+        "calibration_data": {
+          "type": "DataLoader",
+          "required": false,
+          "description": "Calibration dataset (for static quantization)"
+        },
+        "target_dtype": {
+          "type": "string",
+          "required": false,
+          "default": "int8",
+          "description": "Target data type: 'int8', 'uint8'"
+        }
+      },
+      "outputs": {
+        "quantized_model": {
+          "type": "torch.nn.Module",
+          "description": "Quantized model"
+        },
+        "size_reduction": {
+          "type": "float",
+          "description": "Model size reduction factor"
+        },
+        "accuracy_change": {
+          "type": "float",
+          "description": "Accuracy change (+/- percentage)"
+        }
+      }
+    },
+    {
+      "name": "profile_performance",
+      "description": "Benchmark model performance on target device",
+      "inputs": {
+        "model_path": {
+          "type": "string",
+          "required": true,
+          "description": "Path to model (ONNX, TensorRT, or PyTorch)"
+        },
+        "device": {
+          "type": "string",
+          "required": false,
+          "default": "cuda",
+          "description": "Device for profiling: 'cuda', 'cpu'"
+        },
+        "num_iterations": {
+          "type": "integer",
+          "required": false,
+          "default": 100,
+          "description": "Number of inference iterations"
+        },
+        "warmup_iterations": {
+          "type": "integer",
+          "required": false,
+          "default": 10,
+          "description": "Warmup iterations before measurement"
+        },
+        "sample_input_shape": {
+          "type": "dict",
+          "required": true,
+          "description": "Input shapes for profiling"
+        }
+      },
+      "outputs": {
+        "average_latency_ms": {
+          "type": "float",
+          "description": "Average inference latency in milliseconds"
+        },
+        "throughput_fps": {
+          "type": "float",
+          "description": "Throughput in frames per second"
+        },
+        "memory_usage_mb": {
+          "type": "float",
+          "description": "GPU memory usage in MB"
+        },
+        "percentiles": {
+          "type": "object",
+          "description": "Latency percentiles (p50, p90, p99)"
+        }
+      }
+    },
+    {
+      "name": "deploy_to_jetson",
+      "description": "Deploy model and code to NVIDIA Jetson device",
+      "inputs": {
+        "jetson_ip": {
+          "type": "string",
+          "required": true,
+          "description": "Jetson device IP address"
+        },
+        "jetson_user": {
+          "type": "string",
+          "required": false,
+          "default": "nvidia",
+          "description": "SSH username"
+        },
+        "model_path": {
+          "type": "string",
+          "required": true,
+          "description": "Path to optimized model file"
+        },
+        "code_directory": {
+          "type": "string",
+          "required": true,
+          "description": "Directory containing application code"
+        },
+        "target_directory": {
+          "type": "string",
+          "required": false,
+          "default": "/home/nvidia/robot",
+          "description": "Target directory on Jetson"
+        },
+        "setup_systemd": {
+          "type": "boolean",
+          "required": false,
+          "default": false,
+          "description": "Set up systemd service for auto-start"
+        }
+      },
+      "outputs": {
+        "deployment_status": {
+          "type": "string",
+          "description": "Success or error message"
+        },
+        "remote_path": {
+          "type": "string",
+          "description": "Path to deployed files on Jetson"
+        }
+      }
+    },
+    {
+      "name": "configure_jetson_power",
+      "description": "Configure Jetson power mode and clock settings",
+      "inputs": {
+        "jetson_ip": {
+          "type": "string",
+          "required": true,
+          "description": "Jetson device IP address"
+        },
+        "power_mode": {
+          "type": "string",
+          "required": true,
+          "description": "Power mode: 'MAXN', '15W', '10W' (model-dependent)"
+        },
+        "enable_jetson_clocks": {
+          "type": "boolean",
+          "required": false,
+          "default": false,
+          "description": "Enable maximum clock rates"
+        }
+      },
+      "outputs": {
+        "current_mode": {
+          "type": "string",
+          "description": "Activated power mode"
+        },
+        "estimated_power_w": {
+          "type": "float",
+          "description": "Estimated power consumption in watts"
+        }
+      }
+    },
+    {
+      "name": "create_deployment_docker",
+      "description": "Create Docker image for Jetson deployment",
+      "inputs": {
+        "base_image": {
+          "type": "string",
+          "required": false,
+          "default": "nvcr.io/nvidia/l4t-pytorch:r35.2.1-pth2.0-py3",
+          "description": "Base Docker image for Jetson"
+        },
+        "application_directory": {
+          "type": "string",
+          "required": true,
+          "description": "Directory with application code"
+        },
+        "requirements_file": {
+          "type": "string",
+          "required": true,
+          "description": "Python requirements.txt file"
+        },
+        "output_tag": {
+          "type": "string",
+          "required": true,
+          "description": "Docker image tag"
+        },
+        "include_ros2": {
+          "type": "boolean",
+          "required": false,
+          "default": false,
+          "description": "Include ROS2 in the image"
+        }
+      },
+      "outputs": {
+        "image_name": {
+          "type": "string",
+          "description": "Built Docker image name"
+        },
+        "dockerfile_path": {
+          "type": "string",
+          "description": "Path to generated Dockerfile"
+        },
+        "image_size_mb": {
+          "type": "float",
+          "description": "Docker image size in MB"
+        }
+      }
+    },
+    {
+      "name": "monitor_thermal",
+      "description": "Monitor thermal performance and throttling on Jetson",
+      "inputs": {
+        "jetson_ip": {
+          "type": "string",
+          "required": true,
+          "description": "Jetson device IP address"
+        },
+        "duration_seconds": {
+          "type": "integer",
+          "required": false,
+          "default": 60,
+          "description": "Monitoring duration"
+        },
+        "sample_interval_ms": {
+          "type": "integer",
+          "required": false,
+          "default": 1000,
+          "description": "Sampling interval in milliseconds"
+        }
+      },
+      "outputs": {
+        "temperature_log": {
+          "type": "array",
+          "description": "Temperature readings over time (°C)"
+        },
+        "throttling_events": {
+          "type": "integer",
+          "description": "Number of thermal throttling events"
+        },
+        "max_temperature": {
+          "type": "float",
+          "description": "Maximum temperature reached (°C)"
+        },
+        "power_log": {
+          "type": "array",
+          "description": "Power consumption readings (W)"
+        }
+      }
+    },
+    {
+      "name": "setup_ros2_edge",
+      "description": "Set up ROS2 workspace on Jetson for robot control",
+      "inputs": {
+        "jetson_ip": {
+          "type": "string",
+          "required": true,
+          "description": "Jetson device IP address"
+        },
+        "workspace_path": {
+          "type": "string",
+          "required": false,
+          "default": "/home/nvidia/ros2_ws",
+          "description": "ROS2 workspace path"
+        },
+        "packages": {
+          "type": "array",
+          "required": true,
+          "description": "List of ROS2 packages to install"
+        },
+        "build_type": {
+          "type": "string",
+          "required": false,
+          "default": "Release",
+          "description": "Build type: 'Release', 'Debug', 'RelWithDebInfo'"
+        }
+      },
+      "outputs": {
+        "workspace_path": {
+          "type": "string",
+          "description": "Path to created workspace"
+        },
+        "installed_packages": {
+          "type": "array",
+          "description": "List of successfully built packages"
+        }
+      }
+    }
+  ],
+  "dependencies": [
+    "NVIDIA JetPack 5.1+",
+    "TensorRT 8.5+",
+    "CUDA 11.4+",
+    "cuDNN 8.6+",
+    "torch",
+    "onnx",
+    "onnxruntime-gpu",
+    "pycuda",
+    "paramiko (for SSH deployment)"
+  ],
+  "supported_devices": [
+    "Jetson Orin Nano (8GB)",
+    "Jetson Orin NX (16GB)",
+    "Jetson AGX Orin (32GB, 64GB)",
+    "Jetson Xavier NX",
+    "Jetson Xavier AGX"
+  ],
+  "optimization_techniques": [
+    "ONNX export",
+    "TensorRT conversion",
+    "FP16 quantization",
+    "INT8 quantization",
+    "Dynamic shape optimization",
+    "Layer fusion",
+    "Kernel auto-tuning"
+  ],
+  "performance_targets": {
+    "orin_nano": "30-50ms inference for VLA models",
+    "orin_nx": "15-30ms inference for VLA models",
+    "agx_orin": "10-20ms inference for VLA models"
+  }
+}

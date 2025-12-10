@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://physical-ai-humanoid.org/schemas/documentation-page.json",
+  "title": "DocumentationPage",
+  "description": "Schema for a single page of educational content in the Docusaurus site",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "module",
+    "chapter",
+    "pageNumber",
+    "filePath",
+    "description",
+    "tags",
+    "status"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^page-[0-9]+-[a-z0-9-]+$",
+      "description": "Unique identifier (e.g., 'page-20-isaac-sdk-setup')"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 100,
+      "description": "Display title for the page"
+    },
+    "module": {
+      "type": "string",
+      "description": "Parent module name"
+    },
+    "chapter": {
+      "type": "string",
+      "description": "Parent chapter name"
+    },
+    "pageNumber": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Position within chapter"
+    },
+    "filePath": {
+      "type": "string",
+      "pattern": "^docs/.*\\.mdx?$",
+      "description": "Relative path to MDX file"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 300,
+      "description": "Meta description for SEO"
+    },
+    "tags": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 10,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9-]+$"
+      },
+      "uniqueItems": true,
+      "description": "Searchable tags (lowercase, hyphen-separated)"
+    },
+    "sidebarPosition": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Order in sidebar navigation"
+    },
+    "estimatedReadTime": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Estimated reading time in minutes"
+    },
+    "createdDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 creation timestamp"
+    },
+    "lastModified": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 last modified timestamp"
+    },
+    "author": {
+      "type": "string",
+      "description": "Content author or team name"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "published", "archived"],
+      "description": "Publication status"
+    }
+  },
+  "additionalProperties": false
+}

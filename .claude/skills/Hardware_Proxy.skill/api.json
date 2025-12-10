@@ -1,0 +1,429 @@
+{
+  "skill_name": "Hardware_Proxy",
+  "version": "1.0.0",
+  "description": "Hardware integration for Unitree robots, mini humanoids, and custom hardware with safety systems",
+  "functions": [
+    {
+      "name": "connect_robot",
+      "description": "Establish connection to robot hardware",
+      "inputs": {
+        "robot_type": {
+          "type": "string",
+          "required": true,
+          "description": "Robot type: 'unitree_go2', 'unitree_h1', 'custom_humanoid', 'dynamixel'"
+        },
+        "interface_type": {
+          "type": "string",
+          "required": true,
+          "description": "Communication interface: 'ethernet', 'can', 'serial', 'usb'"
+        },
+        "connection_params": {
+          "type": "object",
+          "required": true,
+          "description": "Connection parameters",
+          "properties": {
+            "ethernet": "{'ip': 'string', 'port': integer}",
+            "can": "{'channel': 'string', 'bitrate': integer}",
+            "serial": "{'port': 'string', 'baudrate': integer}"
+          }
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "required": false,
+          "default": 1000,
+          "description": "Connection timeout in milliseconds"
+        }
+      },
+      "outputs": {
+        "connection": {
+          "type": "RobotConnection",
+          "description": "Robot connection handle"
+        },
+        "status": {
+          "type": "string",
+          "description": "Connection status message"
+        },
+        "robot_info": {
+          "type": "object",
+          "description": "Robot information (model, firmware, DOF, etc.)"
+        }
+      }
+    },
+    {
+      "name": "send_joint_commands",
+      "description": "Send position, velocity, or torque commands to robot joints",
+      "inputs": {
+        "command_type": {
+          "type": "string",
+          "required": true,
+          "description": "Command type: 'position', 'velocity', 'torque', 'pwm'"
+        },
+        "values": {
+          "type": "array",
+          "required": true,
+          "description": "Command values for each joint (length = DOF)"
+        },
+        "gains": {
+          "type": "object",
+          "required": false,
+          "description": "PD gains for position control",
+          "properties": {
+            "kp": "array or float (proportional gains)",
+            "kd": "array or float (derivative gains)"
+          }
+        },
+        "safety_check": {
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Apply safety limits before sending"
+        }
+      },
+      "outputs": {
+        "success": {
+          "type": "boolean",
+          "description": "Whether command was sent successfully"
+        },
+        "actual_commands": {
+          "type": "array",
+          "description": "Actual commands sent (after safety filtering)"
+        }
+      }
+    },
+    {
+      "name": "get_sensor_data",
+      "description": "Retrieve sensor data from robot",
+      "inputs": {
+        "sensor_types": {
+          "type": "array",
+          "required": true,
+          "description": "Sensors to read",
+          "items": [
+            "joint_positions",
+            "joint_velocities",
+            "joint_torques",
+            "imu_orientation",
+            "imu_angular_velocity",
+            "imu_linear_acceleration",
+            "contact_sensors",
+            "battery_status",
+            "motor_temperatures"
+          ]
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "required": false,
+          "default": 100,
+          "description": "Read timeout in milliseconds"
+        }
+      },
+      "outputs": {
+        "sensor_data": {
+          "type": "object",
+          "description": "Dictionary of sensor readings"
+        },
+        "timestamp": {
+          "type": "float",
+          "description": "Timestamp of sensor reading"
+        }
+      }
+    },
+    {
+      "name": "calibrate_robot",
+      "description": "Perform robot calibration procedure",
+      "inputs": {
+        "calibration_type": {
+          "type": "string",
+          "required": true,
+          "description": "Calibration type: 'zero_position', 'imu', 'joint_offsets', 'full'"
+        },
+        "automatic": {
+          "type": "boolean",
+          "required": false,
+          "default": false,
+          "description": "Automatic vs. manual calibration"
+        },
+        "save_calibration": {
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Save calibration to file"
+        }
+      },
+      "outputs": {
+        "calibration_data": {
+          "type": "object",
+          "description": "Calibration results (offsets, matrices, etc.)"
+        },
+        "success": {
+          "type": "boolean",
+          "description": "Whether calibration succeeded"
+        },
+        "calibration_file": {
+          "type": "string",
+          "description": "Path to saved calibration file"
+        }
+      }
+    },
+    {
+      "name": "emergency_stop",
+      "description": "Immediately stop all robot motion",
+      "inputs": {
+        "reason": {
+          "type": "string",
+          "required": false,
+          "description": "Reason for emergency stop (for logging)"
+        }
+      },
+      "outputs": {
+        "stopped": {
+          "type": "boolean",
+          "description": "Whether robot was successfully stopped"
+        },
+        "stop_time": {
+          "type": "float",
+          "description": "Time taken to stop (seconds)"
+        }
+      }
+    },
+    {
+      "name": "check_safety",
+      "description": "Perform comprehensive safety checks",
+      "inputs": {
+        "checks": {
+          "type": "array",
+          "required": false,
+          "default": "all",
+          "description": "Safety checks to perform",
+          "items": [
+            "joint_limits",
+            "velocity_limits",
+            "temperature",
+            "battery",
+            "communication",
+            "imu_anomaly",
+            "contact_anomaly"
+          ]
+        }
+      },
+      "outputs": {
+        "safe": {
+          "type": "boolean",
+          "description": "Whether all safety checks passed"
+        },
+        "failures": {
+          "type": "array",
+          "description": "List of failed safety checks"
+        },
+        "warnings": {
+          "type": "array",
+          "description": "List of safety warnings"
+        }
+      }
+    },
+    {
+      "name": "create_ros2_bridge",
+      "description": "Create ROS2 bridge for hardware interface",
+      "inputs": {
+        "robot_connection": {
+          "type": "RobotConnection",
+          "required": true,
+          "description": "Connected robot interface"
+        },
+        "node_name": {
+          "type": "string",
+          "required": false,
+          "default": "hardware_bridge",
+          "description": "ROS2 node name"
+        },
+        "publish_rate": {
+          "type": "float",
+          "required": false,
+          "default": 100.0,
+          "description": "State publishing rate in Hz"
+        },
+        "topics": {
+          "type": "object",
+          "required": false,
+          "description": "Custom topic names",
+          "properties": {
+            "joint_states": "string (default: '/joint_states')",
+            "joint_commands": "string (default: '/joint_commands')",
+            "imu": "string (default: '/imu')"
+          }
+        }
+      },
+      "outputs": {
+        "node": {
+          "type": "ROS2Node",
+          "description": "Created ROS2 node"
+        },
+        "topic_list": {
+          "type": "array",
+          "description": "List of created topics"
+        }
+      }
+    },
+    {
+      "name": "run_sim_to_real_policy",
+      "description": "Deploy and run simulation-trained policy on real robot",
+      "inputs": {
+        "policy": {
+          "type": "object",
+          "required": true,
+          "description": "Trained policy (PyTorch, ONNX, or TensorRT)"
+        },
+        "robot_connection": {
+          "type": "RobotConnection",
+          "required": true,
+          "description": "Connected robot interface"
+        },
+        "control_frequency": {
+          "type": "float",
+          "required": false,
+          "default": 50.0,
+          "description": "Control loop frequency in Hz"
+        },
+        "duration": {
+          "type": "float",
+          "required": false,
+          "description": "Duration to run policy (seconds), omit for continuous"
+        },
+        "safety_limits": {
+          "type": "object",
+          "required": false,
+          "description": "Safety limits for policy execution"
+        },
+        "observation_adapter": {
+          "type": "function",
+          "required": false,
+          "description": "Function to adapt real observations to sim format"
+        },
+        "action_adapter": {
+          "type": "function",
+          "required": false,
+          "description": "Function to adapt sim actions to real format"
+        }
+      },
+      "outputs": {
+        "success": {
+          "type": "boolean",
+          "description": "Whether policy executed successfully"
+        },
+        "statistics": {
+          "type": "object",
+          "description": "Execution statistics (control frequency achieved, safety triggers, etc.)"
+        },
+        "log_file": {
+          "type": "string",
+          "description": "Path to execution log"
+        }
+      }
+    },
+    {
+      "name": "configure_motor",
+      "description": "Configure individual motor parameters",
+      "inputs": {
+        "motor_id": {
+          "type": "integer",
+          "required": true,
+          "description": "Motor/joint ID"
+        },
+        "parameters": {
+          "type": "object",
+          "required": true,
+          "description": "Motor parameters to configure",
+          "properties": {
+            "current_limit": "float (Amps)",
+            "velocity_limit": "float (rad/s or deg/s)",
+            "position_limits": "[min, max] (rad or deg)",
+            "kp": "float (proportional gain)",
+            "kd": "float (derivative gain)",
+            "control_mode": "string (position, velocity, torque, pwm)"
+          }
+        }
+      },
+      "outputs": {
+        "success": {
+          "type": "boolean",
+          "description": "Whether configuration was successful"
+        },
+        "actual_parameters": {
+          "type": "object",
+          "description": "Actual parameters set (may differ from requested)"
+        }
+      }
+    },
+    {
+      "name": "get_hardware_diagnostics",
+      "description": "Retrieve comprehensive hardware diagnostic information",
+      "inputs": {
+        "include_history": {
+          "type": "boolean",
+          "required": false,
+          "default": false,
+          "description": "Include historical fault log"
+        }
+      },
+      "outputs": {
+        "diagnostics": {
+          "type": "object",
+          "description": "Diagnostic information",
+          "properties": {
+            "communication_status": "string",
+            "motor_temperatures": "array",
+            "battery_status": "object",
+            "joint_health": "array",
+            "firmware_version": "string",
+            "uptime": "float (seconds)",
+            "error_count": "integer",
+            "warning_count": "integer"
+          }
+        },
+        "fault_log": {
+          "type": "array",
+          "description": "Historical fault log (if requested)"
+        }
+      }
+    }
+  ],
+  "dependencies": [
+    "pyserial",
+    "python-can",
+    "socket (built-in)",
+    "numpy",
+    "rclpy (for ROS2 integration)",
+    "unitree_sdk2 (for Unitree robots)",
+    "dynamixel_sdk (for Dynamixel motors)"
+  ],
+  "supported_robots": [
+    "Unitree Go2 (quadruped)",
+    "Unitree H1 (humanoid)",
+    "Unitree G1 (humanoid)",
+    "Custom humanoid with CAN bus",
+    "Custom humanoid with serial",
+    "Dynamixel-based platforms"
+  ],
+  "communication_protocols": [
+    "Ethernet/UDP (Unitree)",
+    "CAN bus (custom platforms)",
+    "Serial/UART (Dynamixel, custom)",
+    "USB (development/debug)"
+  ],
+  "safety_features": [
+    "Joint limit enforcement",
+    "Velocity limit enforcement",
+    "Emergency stop",
+    "Temperature monitoring",
+    "Battery monitoring",
+    "Communication timeout detection",
+    "Fall detection",
+    "Fault logging"
+  ],
+  "performance_targets": {
+    "control_frequency": "200-500 Hz (low-level), 20-50 Hz (high-level)",
+    "command_latency": "< 10ms",
+    "sensor_read_latency": "< 5ms",
+    "emergency_stop_response": "< 1ms (hardware)"
+  }
+}

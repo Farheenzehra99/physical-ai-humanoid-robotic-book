@@ -1,0 +1,302 @@
+{
+  "agent_name": "AIAgent",
+  "version": "1.0.0",
+  "description": "Multi-skill agent for AI-driven robotics: RL training, VLA integration, and edge deployment",
+  "skills": [
+    "IsaacSim_Pipeline",
+    "VLA_Controller",
+    "Edge_Deploy"
+  ],
+  "routing_rules": [
+    {
+      "trigger": "rl_training",
+      "keywords": ["train policy", "reinforcement learning", "isaac gym", "parallel environments", "ppo", "sac"],
+      "target_skill": "IsaacSim_Pipeline",
+      "priority": 1,
+      "description": "Route RL training tasks to IsaacSim_Pipeline"
+    },
+    {
+      "trigger": "synthetic_data",
+      "keywords": ["synthetic data", "dataset generation", "replicator", "domain randomization", "labeled images"],
+      "target_skill": "IsaacSim_Pipeline",
+      "priority": 1,
+      "description": "Route synthetic data generation to IsaacSim_Pipeline"
+    },
+    {
+      "trigger": "vla_model",
+      "keywords": ["vla", "vision-language", "rt-1", "rt-2", "openvla", "foundation model", "fine-tune"],
+      "target_skill": "VLA_Controller",
+      "priority": 2,
+      "description": "Route VLA tasks to VLA_Controller"
+    },
+    {
+      "trigger": "edge_deployment",
+      "keywords": ["deploy", "jetson", "tensorrt", "optimize", "quantize", "onnx", "edge"],
+      "target_skill": "Edge_Deploy",
+      "priority": 3,
+      "description": "Route deployment and optimization to Edge_Deploy"
+    }
+  ],
+  "sequential_workflows": [
+    {
+      "name": "rl_to_deployment",
+      "description": "Train RL policy and deploy to edge device",
+      "steps": [
+        {
+          "step": 1,
+          "skill": "IsaacSim_Pipeline",
+          "action": "Train RL policy with parallel environments",
+          "output": "Trained policy checkpoint (.pth)"
+        },
+        {
+          "step": 2,
+          "skill": "Edge_Deploy",
+          "action": "Export policy to ONNX",
+          "input": "Policy checkpoint from step 1",
+          "output": "ONNX model (.onnx)"
+        },
+        {
+          "step": 3,
+          "skill": "Edge_Deploy",
+          "action": "Convert to TensorRT and quantize",
+          "input": "ONNX model from step 2",
+          "output": "TensorRT engine (.engine)"
+        },
+        {
+          "step": 4,
+          "skill": "Edge_Deploy",
+          "action": "Deploy to Jetson device",
+          "input": "TensorRT engine from step 3",
+          "output": "Deployed model on Jetson"
+        }
+      ]
+    },
+    {
+      "name": "vla_fine_tuning_pipeline",
+      "description": "Fine-tune VLA model and deploy",
+      "steps": [
+        {
+          "step": 1,
+          "skill": "VLA_Controller",
+          "action": "Load pre-trained VLA model",
+          "output": "Model instance"
+        },
+        {
+          "step": 2,
+          "skill": "VLA_Controller",
+          "action": "Fine-tune on robot demonstrations",
+          "input": "Model from step 1 + demonstration dataset",
+          "output": "Fine-tuned model checkpoint"
+        },
+        {
+          "step": 3,
+          "skill": "Edge_Deploy",
+          "action": "Optimize for edge inference",
+          "input": "Fine-tuned model from step 2",
+          "output": "Optimized model (TensorRT/ONNX)"
+        },
+        {
+          "step": 4,
+          "skill": "Edge_Deploy",
+          "action": "Deploy to Jetson",
+          "input": "Optimized model from step 3",
+          "output": "Running VLA on edge"
+        }
+      ]
+    },
+    {
+      "name": "synthetic_data_training",
+      "description": "Generate synthetic data and train model",
+      "steps": [
+        {
+          "step": 1,
+          "skill": "IsaacSim_Pipeline",
+          "action": "Set up Replicator with domain randomization",
+          "output": "Replicator configuration"
+        },
+        {
+          "step": 2,
+          "skill": "IsaacSim_Pipeline",
+          "action": "Generate synthetic dataset",
+          "input": "Replicator config from step 1",
+          "output": "Synthetic dataset (images + annotations)"
+        },
+        {
+          "step": 3,
+          "skill": "VLA_Controller",
+          "action": "Train or fine-tune model on dataset",
+          "input": "Synthetic dataset from step 2",
+          "output": "Trained model"
+        },
+        {
+          "step": 4,
+          "skill": "Edge_Deploy",
+          "action": "Optimize and deploy",
+          "input": "Trained model from step 3",
+          "output": "Deployed model"
+        }
+      ]
+    },
+    {
+      "name": "sim_to_real_transfer",
+      "description": "Train with domain randomization for sim-to-real",
+      "steps": [
+        {
+          "step": 1,
+          "skill": "IsaacSim_Pipeline",
+          "action": "Configure domain randomization",
+          "output": "Randomization parameters"
+        },
+        {
+          "step": 2,
+          "skill": "IsaacSim_Pipeline",
+          "action": "Train policy with randomization",
+          "input": "Randomization from step 1",
+          "output": "Robust policy"
+        },
+        {
+          "step": 3,
+          "skill": "Edge_Deploy",
+          "action": "Optimize policy for edge",
+          "input": "Policy from step 2",
+          "output": "Optimized policy"
+        },
+        {
+          "step": 4,
+          "skill": "Edge_Deploy",
+          "action": "Deploy and validate on hardware",
+          "input": "Optimized policy from step 3",
+          "output": "Real-world performance metrics"
+        }
+      ]
+    }
+  ],
+  "parallel_capabilities": [
+    {
+      "name": "multi_model_training",
+      "description": "Train multiple models simultaneously",
+      "skills": ["IsaacSim_Pipeline"],
+      "coordination": "Multiple GPU environments for hyperparameter search"
+    },
+    {
+      "name": "data_generation_while_training",
+      "description": "Generate synthetic data while other model trains",
+      "skills": ["IsaacSim_Pipeline"],
+      "coordination": "Separate GPU processes or time-slicing"
+    },
+    {
+      "name": "multi_model_optimization",
+      "description": "Optimize multiple model variants in parallel",
+      "skills": ["Edge_Deploy"],
+      "coordination": "Parallel TensorRT builds"
+    }
+  ],
+  "decision_logic": {
+    "primary_decision": "What is the AI development phase?",
+    "branches": [
+      {
+        "condition": "Need to train from scratch",
+        "first_skill": "IsaacSim_Pipeline",
+        "then": "Edge_Deploy"
+      },
+      {
+        "condition": "Have pre-trained model, need fine-tuning",
+        "first_skill": "VLA_Controller",
+        "then": "Edge_Deploy"
+      },
+      {
+        "condition": "Have trained model, need deployment",
+        "first_skill": "Edge_Deploy",
+        "then": "Complete"
+      },
+      {
+        "condition": "Need synthetic data",
+        "first_skill": "IsaacSim_Pipeline",
+        "then": "VLA_Controller or Edge_Deploy"
+      }
+    ]
+  },
+  "skill_dependencies": {
+    "IsaacSim_Pipeline": {
+      "outputs_to": ["VLA_Controller", "Edge_Deploy"],
+      "formats": ["Policy checkpoints (.pth)", "Synthetic datasets (images, labels)"]
+    },
+    "VLA_Controller": {
+      "inputs_from": ["IsaacSim_Pipeline"],
+      "outputs_to": ["Edge_Deploy"],
+      "formats": ["Model checkpoints (.pth, .safetensors)"]
+    },
+    "Edge_Deploy": {
+      "inputs_from": ["IsaacSim_Pipeline", "VLA_Controller"],
+      "outputs": ["Optimized models (.engine, .onnx)", "Deployed systems"]
+    }
+  },
+  "optimization_strategies": {
+    "for_speed": {
+      "description": "Maximize inference speed",
+      "route": [
+        "Train smaller model or distill (IsaacSim/VLA)",
+        "FP16 or INT8 quantization (Edge_Deploy)",
+        "TensorRT optimization (Edge_Deploy)"
+      ],
+      "target": "< 20ms inference"
+    },
+    "for_accuracy": {
+      "description": "Maximize task performance",
+      "route": [
+        "Train larger model with more data (IsaacSim/VLA)",
+        "Extensive fine-tuning (VLA_Controller)",
+        "FP16 quantization only (Edge_Deploy)"
+      ],
+      "target": "> 90% success rate"
+    },
+    "for_robustness": {
+      "description": "Maximize sim-to-real transfer",
+      "route": [
+        "Heavy domain randomization (IsaacSim_Pipeline)",
+        "Fine-tune on real data (VLA_Controller)",
+        "Conservative optimization (Edge_Deploy)"
+      ],
+      "target": "< 10% performance drop on hardware"
+    }
+  },
+  "example_routes": [
+    {
+      "user_request": "Train a walking policy with Isaac Gym",
+      "routing": [
+        "IsaacSim_Pipeline (RL training)",
+        "Edge_Deploy (optimization)",
+        "Edge_Deploy (deployment)"
+      ]
+    },
+    {
+      "user_request": "Fine-tune OpenVLA on my demonstrations",
+      "routing": [
+        "VLA_Controller (load + fine-tune)",
+        "Edge_Deploy (optimize + deploy)"
+      ]
+    },
+    {
+      "user_request": "Generate 10k synthetic images",
+      "routing": [
+        "IsaacSim_Pipeline (Replicator setup + generation)"
+      ]
+    },
+    {
+      "user_request": "Optimize my trained model for Jetson",
+      "routing": [
+        "Edge_Deploy (ONNX export)",
+        "Edge_Deploy (TensorRT conversion)",
+        "Edge_Deploy (deployment)"
+      ]
+    },
+    {
+      "user_request": "Train RL policy with domain randomization for real robot",
+      "routing": [
+        "IsaacSim_Pipeline (randomization + training)",
+        "Edge_Deploy (optimization)",
+        "Edge_Deploy (deploy to Jetson)"
+      ]
+    }
+  ]
+}

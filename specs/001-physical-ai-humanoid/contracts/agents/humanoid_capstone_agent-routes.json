@@ -1,0 +1,337 @@
+{
+  "agentId": "humanoid_capstone_agent",
+  "name": "Humanoid Capstone Agent",
+  "version": "1.0.0",
+  "description": "Orchestrates the complete 13-week capstone workflow from URDF design to hardware deployment",
+
+  "routes": [
+    {
+      "routeId": "week01_to_week13_full_capstone",
+      "name": "Complete 13-Week Capstone Workflow",
+      "description": "End-to-end workflow: ROS2 setup → URDF design → Gazebo sim → Isaac Sim RL training → VLA integration → Edge optimization → Hardware deployment",
+
+      "steps": [
+        {
+          "step": 1,
+          "skill": "ros2_core",
+          "action": "setup_ros2_environment",
+          "parameters": {
+            "ros_distro": "jazzy",
+            "workspace_name": "humanoid_ws"
+          },
+          "outputs": ["workspace_path"],
+          "success_criteria": "ROS2 environment configured and sourced"
+        },
+        {
+          "step": 2,
+          "skill": "urdf_designer",
+          "action": "generate_humanoid_urdf",
+          "parameters": {
+            "robot_name": "capstone_humanoid",
+            "dof_count": 18,
+            "height_meters": 1.2,
+            "output_format": "xacro"
+          },
+          "outputs": ["urdf_path"],
+          "success_criteria": "18-DOF humanoid URDF generated and validated"
+        },
+        {
+          "step": 3,
+          "skill": "gazebo_sim",
+          "action": "launch_simulation",
+          "parameters": {
+            "world_file": "flat_ground.world",
+            "gui": true,
+            "physics_engine": "ode"
+          },
+          "outputs": ["gazebo_process_id"],
+          "success_criteria": "Gazebo launched with robot spawned"
+        },
+        {
+          "step": 4,
+          "skill": "gazebo_sim",
+          "action": "test_zmp_walking",
+          "parameters": {
+            "robot_name": "capstone_humanoid",
+            "target_velocity": 0.1,
+            "duration_seconds": 30
+          },
+          "outputs": ["walking_success", "average_velocity"],
+          "success_criteria": "Robot walks at > 0.1 m/s in Gazebo"
+        },
+        {
+          "step": 5,
+          "skill": "isaac_sim_pipeline",
+          "action": "create_parallel_envs",
+          "parameters": {
+            "env_count": 1024,
+            "robot_urdf_path": "${step2.urdf_path}",
+            "task_config": {
+              "task_name": "humanoid_walking",
+              "reward_weights": {
+                "forward_velocity": 1.0,
+                "upright": 0.5,
+                "energy": -0.01,
+                "joint_limits": -0.1
+              }
+            },
+            "domain_randomization": {
+              "friction": [0.5, 1.5],
+              "mass": [0.8, 1.2],
+              "ground_height": [-0.05, 0.05]
+            },
+            "headless": true
+          },
+          "outputs": ["env_count", "real_time_factor"],
+          "success_criteria": "1024 parallel envs running at > 0.9 RT factor"
+        },
+        {
+          "step": 6,
+          "skill": "isaac_sim_pipeline",
+          "action": "train_rl_policy",
+          "parameters": {
+            "algorithm": "ppo",
+            "total_timesteps": 10000000,
+            "learning_rate": 0.0003,
+            "checkpoint_frequency": 100000,
+            "tensorboard_log": "logs/rl_training"
+          },
+          "outputs": ["best_model_path", "final_reward"],
+          "success_criteria": "Policy achieves > 0.5 m/s walking speed"
+        },
+        {
+          "step": 7,
+          "skill": "vla_controller",
+          "action": "finetune_openvla",
+          "parameters": {
+            "base_model": "openvla-7b",
+            "demonstration_count": 200,
+            "lora_rank": 8,
+            "lora_alpha": 16,
+            "training_epochs": 3,
+            "tasks": ["pick_object", "walk_to_goal", "grasp_and_move"]
+          },
+          "outputs": ["finetuned_model_path", "validation_accuracy"],
+          "success_criteria": "Validation accuracy > 85%"
+        },
+        {
+          "step": 8,
+          "skill": "edge_deploy",
+          "action": "export_to_onnx",
+          "parameters": {
+            "pytorch_model_path": "${step6.best_model_path}",
+            "output_onnx_path": "walking_policy.onnx",
+            "input_shape": [1, 48],
+            "opset_version": 13
+          },
+          "outputs": ["onnx_path"],
+          "success_criteria": "ONNX model exported successfully"
+        },
+        {
+          "step": 9,
+          "skill": "edge_deploy",
+          "action": "convert_to_tensorrt",
+          "parameters": {
+            "onnx_path": "${step8.onnx_path}",
+            "output_engine_path": "walking_policy_fp16.engine",
+            "precision": "fp16",
+            "max_workspace_size_mb": 4096,
+            "calibration_samples": 1000
+          },
+          "outputs": ["engine_path", "engine_size_mb"],
+          "success_criteria": "TensorRT engine created with FP16 precision"
+        },
+        {
+          "step": 10,
+          "skill": "edge_deploy",
+          "action": "benchmark_latency",
+          "parameters": {
+            "engine_path": "${step9.engine_path}",
+            "num_iterations": 1000,
+            "warmup_iterations": 100,
+            "target_platform": "jetson_orin_nano"
+          },
+          "outputs": ["mean_latency_ms", "p95_latency_ms", "throughput_fps"],
+          "success_criteria": "Mean latency < 50ms on Jetson Orin Nano"
+        },
+        {
+          "step": 11,
+          "skill": "hardware_proxy",
+          "action": "connect_to_robot",
+          "parameters": {
+            "platform": "unitree_go2",
+            "connection_type": "ethernet",
+            "ip_address": "192.168.123.161",
+            "safety_checks": true
+          },
+          "outputs": ["connection_status", "robot_id"],
+          "success_criteria": "Successfully connected to Unitree Go2"
+        },
+        {
+          "step": 12,
+          "skill": "hardware_proxy",
+          "action": "deploy_policy_to_hardware",
+          "parameters": {
+            "robot_id": "${step11.robot_id}",
+            "policy_engine_path": "${step9.engine_path}",
+            "control_frequency_hz": 50,
+            "safety_mode": "enabled",
+            "emergency_stop": "hardware_button"
+          },
+          "outputs": ["deployment_status"],
+          "success_criteria": "Policy deployed to robot successfully"
+        },
+        {
+          "step": 13,
+          "skill": "hardware_proxy",
+          "action": "execute_walking_task",
+          "parameters": {
+            "robot_id": "${step11.robot_id}",
+            "duration_seconds": 1800,
+            "target_velocity": 0.3,
+            "terrain": "flat_ground",
+            "logging": true,
+            "telemetry_frequency_hz": 10
+          },
+          "outputs": ["execution_success", "actual_velocity", "fall_count", "total_distance_m"],
+          "success_criteria": "Robot walks for 30 minutes continuously with no falls"
+        }
+      ],
+
+      "estimated_duration_minutes": 720,
+      "dependencies": ["ros2_core", "urdf_designer", "gazebo_sim", "isaac_sim_pipeline", "vla_controller", "edge_deploy", "hardware_proxy"],
+      "hardware_requirements": {
+        "gpu": "NVIDIA RTX 4070 Ti or better (for training)",
+        "edge_compute": "NVIDIA Jetson Orin Nano 8GB (for deployment)",
+        "robot": "Unitree Go2/G1 or custom CAN bus humanoid"
+      }
+    },
+
+    {
+      "routeId": "sim_only_capstone",
+      "name": "Simulation-Only Capstone (No Hardware)",
+      "description": "Complete capstone workflow for students without access to physical robots",
+
+      "steps": [
+        {
+          "step": 1,
+          "skill": "ros2_core",
+          "action": "setup_ros2_environment",
+          "parameters": {"ros_distro": "jazzy", "workspace_name": "humanoid_ws"}
+        },
+        {
+          "step": 2,
+          "skill": "urdf_designer",
+          "action": "generate_humanoid_urdf",
+          "parameters": {"robot_name": "sim_humanoid", "dof_count": 18, "height_meters": 1.2}
+        },
+        {
+          "step": 3,
+          "skill": "gazebo_sim",
+          "action": "launch_simulation",
+          "parameters": {"world_file": "flat_ground.world", "gui": true}
+        },
+        {
+          "step": 4,
+          "skill": "isaac_sim_pipeline",
+          "action": "create_parallel_envs",
+          "parameters": {"env_count": 1024, "task_name": "humanoid_walking", "headless": true}
+        },
+        {
+          "step": 5,
+          "skill": "isaac_sim_pipeline",
+          "action": "train_rl_policy",
+          "parameters": {"algorithm": "ppo", "total_timesteps": 10000000}
+        },
+        {
+          "step": 6,
+          "skill": "unity_vis",
+          "action": "create_cinematic_render",
+          "parameters": {
+            "robot_urdf_path": "${step2.urdf_path}",
+            "scene": "living_room_hri",
+            "resolution": "4k",
+            "duration_seconds": 30,
+            "camera_mode": "cinematic"
+          },
+          "outputs": ["video_path"],
+          "success_criteria": "4K cinematic render created"
+        }
+      ],
+
+      "estimated_duration_minutes": 480,
+      "dependencies": ["ros2_core", "urdf_designer", "gazebo_sim", "isaac_sim_pipeline", "unity_vis"]
+    },
+
+    {
+      "routeId": "rapid_vla_integration",
+      "name": "Rapid VLA Integration for Existing Robot",
+      "description": "Fast-track VLA integration for users with existing Unitree robots (Weeks 6-9 condensed)",
+
+      "steps": [
+        {
+          "step": 1,
+          "skill": "hardware_proxy",
+          "action": "connect_to_robot",
+          "parameters": {"platform": "unitree_h1", "connection_type": "ethernet"}
+        },
+        {
+          "step": 2,
+          "skill": "vla_controller",
+          "action": "collect_demonstrations",
+          "parameters": {
+            "robot_id": "${step1.robot_id}",
+            "camera_type": "realsense_d455",
+            "task_list": ["pick_object", "place_object", "walk_to_goal"],
+            "demonstrations_per_task": 50
+          }
+        },
+        {
+          "step": 3,
+          "skill": "vla_controller",
+          "action": "finetune_openvla",
+          "parameters": {
+            "demonstration_dataset": "${step2.dataset_path}",
+            "lora_rank": 8,
+            "training_epochs": 3
+          }
+        },
+        {
+          "step": 4,
+          "skill": "edge_deploy",
+          "action": "deploy_vla_to_jetson",
+          "parameters": {
+            "model_path": "${step3.finetuned_model_path}",
+            "target_device": "jetson_orin_agx",
+            "precision": "fp16"
+          }
+        },
+        {
+          "step": 5,
+          "skill": "vla_controller",
+          "action": "execute_language_command",
+          "parameters": {
+            "robot_id": "${step1.robot_id}",
+            "command": "pick up the red box and place it on the table",
+            "max_execution_time_seconds": 60
+          },
+          "success_criteria": "Task completed successfully based on language command"
+        }
+      ],
+
+      "estimated_duration_minutes": 180,
+      "dependencies": ["hardware_proxy", "vla_controller", "edge_deploy"],
+      "hardware_requirements": {
+        "robot": "Unitree H1 or G1",
+        "camera": "Intel RealSense D455",
+        "edge_compute": "Jetson Orin AGX 64GB"
+      }
+    }
+  ],
+
+  "metadata": {
+    "introduced_week": 11,
+    "complexity": "expert",
+    "primary_use_cases": ["full_capstone_orchestration", "simulation_only_workflow", "vla_integration"]
+  }
+}
