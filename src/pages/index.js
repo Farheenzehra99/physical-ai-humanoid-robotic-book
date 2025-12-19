@@ -11,7 +11,8 @@ export default function Home() {
   return (
     <Layout
       title={`Physical AI & Humanoid Robotics`}
-      description="A Practical Guide to Embodied Intelligence, Robotics Simulation, and LLM-driven Control">
+      description="A Practical Guide to Embodied Intelligence, Robotics Simulation, and LLM-driven Control"
+    >
       <HomepageHero />
     </Layout>
   );
