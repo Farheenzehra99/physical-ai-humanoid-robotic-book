@@ -1,0 +1,132 @@
+.personalizationWrapper {
+  flex: 1;
+  min-width: 200px;
+}
+
+.personalizedContent {
+  /* Match Docusaurus markdown styling */
+  max-width: var(--ifm-container-width);
+  margin: 0 auto;
+  padding: 0 var(--ifm-spacing-horizontal);
+}
+
+.personalizedContent h1,
+.personalizedContent h2,
+.personalizedContent h3,
+.personalizedContent h4 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.personalizedContent p {
+  margin-bottom: 1rem;
+  line-height: 1.7;
+}
+
+.personalizedContent pre {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: var(--ifm-pre-background);
+  border-radius: var(--ifm-pre-border-radius);
+  overflow-x: auto;
+}
+
+.personalizedContent code {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: var(--ifm-code-font-size);
+}
+
+.personalizedContent ul,
+.personalizedContent ol {
+  margin-bottom: 1rem;
+  padding-left: 2rem;
+}
+
+.personalizedContent li {
+  margin-bottom: 0.5rem;
+}
+
+.personalizedContent blockquote {
+  margin: 1rem 0;
+  padding: 0.5rem 1rem;
+  border-left: 4px solid var(--ifm-color-primary);
+  background: var(--ifm-color-emphasis-100);
+}
+
+/* Smooth transition between original and personalized */
+.personalizedContent {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Translation wrapper styles - Feature: 008-urdu-translation */
+.translationWrapper {
+  flex: 1;
+  min-width: 200px;
+}
+
+.translatedContent {
+  /* Match Docusaurus markdown styling */
+  max-width: var(--ifm-container-width);
+  margin: 0 auto;
+  padding: 0 var(--ifm-spacing-horizontal);
+  /* RTL support for Urdu */
+  direction: rtl;
+  text-align: right;
+  font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', Arial, sans-serif;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.translatedContent h1,
+.translatedContent h2,
+.translatedContent h3,
+.translatedContent h4 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.translatedContent p {
+  margin-bottom: 1rem;
+  line-height: 2;
+  font-size: 1.1rem;
+}
+
+.translatedContent pre {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: var(--ifm-pre-background);
+  border-radius: var(--ifm-pre-border-radius);
+  overflow-x: auto;
+  /* Code blocks remain LTR */
+  direction: ltr;
+  text-align: left;
+}
+
+.translatedContent code {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: var(--ifm-code-font-size);
+  direction: ltr;
+}
+
+.translatedContent ul,
+.translatedContent ol {
+  margin-bottom: 1rem;
+  padding-right: 2rem;
+  padding-left: 0;
+}
+
+.translatedContent li {
+  margin-bottom: 0.5rem;
+}
+
+.translatedContent blockquote {
+  margin: 1rem 0;
+  padding: 0.5rem 1rem;
+  border-right: 4px solid var(--ifm-color-primary);
+  border-left: none;
+  background: var(--ifm-color-emphasis-100);
+}
