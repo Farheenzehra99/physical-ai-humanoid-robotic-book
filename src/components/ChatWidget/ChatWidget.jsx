@@ -4,10 +4,10 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { sendChatMessage } from '@site/src/services/chatApi';
-import { useTextSelection } from '@site/src/hooks/useTextSelection';
-import { loadChatHistory, saveChatHistory, clearChatHistory } from '@site/src/utils/sessionStorage';
-import { useAuth } from '@site/src/hooks/useAuth'; // Import auth hook
+import { sendChatMessage } from '../../services/chatApi';
+import { useTextSelection } from '../../hooks/useTextSelection';
+import { loadChatHistory, saveChatHistory, clearChatHistory } from '../../utils/sessionStorage';
+import { useAuth } from '../../hooks/useAuth'; // Import auth hook
 import ChatInput from './ChatInput';
 import ChatMessages from './ChatMessages';
 import SelectedTextIndicator from './SelectedTextIndicator';
