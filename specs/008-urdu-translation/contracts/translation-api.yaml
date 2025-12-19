@@ -1,0 +1,74 @@
+# Translation API Contract
+
+## Overview
+API contract for the chapter-level Urdu translation feature.
+
+## Base Path
+`/api/v1`
+
+## Endpoints
+
+### POST /translate/chapter
+
+#### Description
+Translates the content of a chapter to Urdu while preserving technical elements and document structure.
+
+#### Request
+```json
+{
+  "chapter_slug": "string",
+  "chapter_content": "string",
+  "chapter_title": "string (optional)"
+}
+```
+
+#### Response - 200 OK
+```json
+{
+  "success": true,
+  "translated_content": "string",
+  "translation_summary": {
+    "processing_time_ms": 1234,
+    "content_length_original": 12345,
+    "content_length_translated": 12345,
+    "preserved_elements_count": 12
+  }
+}
+```
+
+#### Response - 400 Bad Request
+```json
+{
+  "detail": "string"
+}
+```
+
+#### Response - 401 Unauthorized
+```json
+{
+  "detail": "Authentication required"
+}
+```
+
+#### Response - 422 Unprocessable Entity
+```json
+{
+  "detail": "Validation error details"
+}
+```
+
+#### Response - 503 Service Unavailable
+```json
+{
+  "detail": "Translation service temporarily unavailable"
+}
+```
+
+#### Headers
+- `Authorization: Bearer {token}` - Required for authentication
+- `Content-Type: application/json` - Required for request body
+
+#### Security
+- OAuth2 Bearer token required
+- User must be authenticated
+- User profile must exist in the system

@@ -1,0 +1,416 @@
+openapi: 3.0.3
+info:
+  title: Complete Retrieval Pipeline API
+  description: |
+    Standalone retrieval system for querying the Physical AI & Humanoid Robotics knowledge base.
+    Accepts natural language queries, generates semantic embeddings, searches Qdrant vector database,
+    and returns ranked document chunks with metadata and similarity scores.
+  version: 1.0.0
+  contact:
+    name: Retrieval Pipeline Team
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local development server
+
+paths:
+  /retrieve:
+    post:
+      summary: Execute retrieval query
+      description: |
+        Submit a natural language query to retrieve relevant document chunks from the knowledge base.
+        Returns ranked results with similarity scores and metadata.
+      operationId: retrieve
+      tags:
+        - Retrieval
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryRequest'
+            examples:
+              simple_query:
+                summary: Simple query
+                value:
+                  query: "What is Physical AI?"
+                  top_k: 5
+              filtered_query:
+                summary: Query with metadata filters
+                value:
+                  query: "ROS2 node initialization"
+                  top_k: 10
+                  min_score: 0.75
+                  filters:
+                    section: "ros2-basics"
+      responses:
+        '200':
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrievalResponse'
+              examples:
+                success_response:
+                  summary: Successful query with results
+                  value:
+                    query: "What is Physical AI?"
+                    results:
+                      - chunk_id: "chunk_intro_001"
+                        text: "Physical AI, also known as Embodied Intelligence..."
+                        metadata:
+                          page: 10
+                          section: "introduction"
+                        similarity_score: 0.856
+                        rank: 1
+                      - chunk_id: "chunk_intro_002"
+                        text: "Unlike traditional AI systems..."
+                        metadata:
+                          page: 11
+                          section: "introduction"
+                        similarity_score: 0.782
+                        rank: 2
+                    count: 2
+                    latency_ms: 456.3
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                empty_query:
+                  summary: Empty query text
+                  value:
+                    error: "Invalid query"
+                    message: "Query text cannot be empty"
+                invalid_top_k:
+                  summary: Invalid top_k parameter
+                  value:
+                    error: "Invalid parameter"
+                    message: "top_k must be between 1 and 20"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                embedding_error:
+                  summary: Embedding service unavailable
+                  value:
+                    error: "Service unavailable"
+                    message: "Failed to generate query embedding"
+
+  /evaluate:
+    post:
+      summary: Run evaluation suite
+      description: |
+        Execute the full test query suite and return quality metrics.
+        Used for validating retrieval performance against test queries.
+      operationId: evaluate
+      tags:
+        - Evaluation
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationRequest'
+            examples:
+              full_evaluation:
+                summary: Run all test queries
+                value:
+                  test_query_ids: null
+      responses:
+        '200':
+          description: Evaluation completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationResponse'
+              examples:
+                evaluation_result:
+                  summary: Evaluation results
+                  value:
+                    total_queries: 10
+                    passed: 8
+                    failed: 2
+                    accuracy: 0.80
+                    avg_latency_ms: 523.5
+                    avg_top_score: 0.812
+                    results:
+                      - test_id: 1
+                        query: "What is Physical AI?"
+                        passed: true
+                        top_score: 0.856
+                        latency_ms: 456.3
+                      - test_id: 2
+                        query: "How do I initialize a ROS2 node?"
+                        passed: true
+                        top_score: 0.823
+                        latency_ms: 512.7
+        '500':
+          description: Evaluation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /health:
+    get:
+      summary: Health check
+      description: Check if retrieval system is operational
+      operationId: healthCheck
+      tags:
+        - Health
+      responses:
+        '200':
+          description: System healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  cohere_connected:
+                    type: boolean
+                    example: true
+                  qdrant_connected:
+                    type: boolean
+                    example: true
+                  collection_exists:
+                    type: boolean
+                    example: true
+        '503':
+          description: System unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    QueryRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: Natural language query text
+          minLength: 1
+          example: "What is Physical AI?"
+        top_k:
+          type: integer
+          description: Number of results to return
+          minimum: 1
+          maximum: 20
+          default: 5
+          example: 5
+        min_score:
+          type: number
+          format: float
+          description: Minimum similarity score threshold
+          minimum: 0.0
+          maximum: 1.0
+          example: 0.75
+        filters:
+          $ref: '#/components/schemas/MetadataFilter'
+
+    MetadataFilter:
+      type: object
+      description: Metadata constraints for filtering results
+      properties:
+        page:
+          type: integer
+          description: Exact page number
+          example: 10
+        page_range:
+          type: array
+          description: Page range [start, end] (inclusive)
+          items:
+            type: integer
+          minItems: 2
+          maxItems: 2
+          example: [10, 20]
+        section:
+          type: string
+          description: Section slug
+          example: "introduction"
+        sections:
+          type: array
+          description: Multiple sections (OR condition)
+          items:
+            type: string
+          example: ["introduction", "ros2-basics"]
+
+    RetrievalResult:
+      type: object
+      required:
+        - chunk_id
+        - text
+        - metadata
+        - similarity_score
+        - rank
+      properties:
+        chunk_id:
+          type: string
+          description: Unique chunk identifier
+          example: "chunk_intro_001"
+        text:
+          type: string
+          description: Chunk text content
+          example: "Physical AI, also known as Embodied Intelligence..."
+        metadata:
+          type: object
+          description: Chunk metadata
+          properties:
+            page:
+              type: integer
+              example: 10
+            section:
+              type: string
+              example: "introduction"
+            chapter:
+              type: string
+              example: "Chapter 1: Foundations"
+        similarity_score:
+          type: number
+          format: float
+          description: Cosine similarity score (0-1)
+          minimum: 0.0
+          maximum: 1.0
+          example: 0.856
+        rank:
+          type: integer
+          description: Position in ranked results (1-indexed)
+          minimum: 1
+          example: 1
+
+    RetrievalResponse:
+      type: object
+      required:
+        - query
+        - results
+        - count
+        - latency_ms
+      properties:
+        query:
+          type: string
+          description: Original query text
+          example: "What is Physical AI?"
+        results:
+          type: array
+          description: Ranked retrieval results
+          items:
+            $ref: '#/components/schemas/RetrievalResult'
+        count:
+          type: integer
+          description: Number of results returned
+          example: 5
+        latency_ms:
+          type: number
+          format: float
+          description: End-to-end query latency in milliseconds
+          example: 456.3
+
+    EvaluationRequest:
+      type: object
+      properties:
+        test_query_ids:
+          type: array
+          description: Specific test query IDs to run (null = all queries)
+          items:
+            type: integer
+          nullable: true
+          example: [1, 2, 3]
+
+    EvaluationResponse:
+      type: object
+      required:
+        - total_queries
+        - passed
+        - failed
+        - accuracy
+        - avg_latency_ms
+        - avg_top_score
+        - results
+      properties:
+        total_queries:
+          type: integer
+          description: Total number of queries evaluated
+          example: 10
+        passed:
+          type: integer
+          description: Number of queries that passed criteria
+          example: 8
+        failed:
+          type: integer
+          description: Number of queries that failed
+          example: 2
+        accuracy:
+          type: number
+          format: float
+          description: Pass rate (passed / total)
+          minimum: 0.0
+          maximum: 1.0
+          example: 0.80
+        avg_latency_ms:
+          type: number
+          format: float
+          description: Average query latency
+          example: 523.5
+        avg_top_score:
+          type: number
+          format: float
+          description: Average of top-1 scores across all queries
+          example: 0.812
+        results:
+          type: array
+          description: Individual query results
+          items:
+            type: object
+            properties:
+              test_id:
+                type: integer
+                example: 1
+              query:
+                type: string
+                example: "What is Physical AI?"
+              passed:
+                type: boolean
+                example: true
+              top_score:
+                type: number
+                format: float
+                example: 0.856
+              latency_ms:
+                type: number
+                format: float
+                example: 456.3
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error type
+          example: "Invalid query"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Query text cannot be empty"
+
+tags:
+  - name: Retrieval
+    description: Core retrieval operations
+  - name: Evaluation
+    description: Quality validation and testing
+  - name: Health
+    description: System health monitoring
