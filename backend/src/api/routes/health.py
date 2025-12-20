@@ -71,19 +71,21 @@ async def health_check() -> JSONResponse:
         except Exception as e:
             logger.warning(f"Cohere health check failed: {e}")
 
-    # Check Gemini connectivity
-    if settings.gemini_api_key:
+    # Check OpenRouter/Gemini connectivity
+    if settings.openrouter_api_key or settings.gemini_api_key:
         try:
-            # Basic check - just verify the API key is set
-            if settings.gemini_api_key:
-                dependencies["gemini"] = "connected"
+            # Basic check - just verify at least one API key is set
+            if settings.openrouter_api_key or settings.gemini_api_key:
+                service_name = "openrouter" if settings.openrouter_api_key else "gemini"
+                dependencies[service_name] = "connected"
         except Exception as e:
-            logger.warning(f"Gemini health check failed: {e}")
+            logger.warning(f"AI service health check failed: {e}")
 
-    # Determine overall status - at least Gemini should be connected
-    essential_connected = dependencies.get("gemini") == "connected"
+    # Determine overall status - at least one AI service should be connected
+    ai_connected = (dependencies.get("openrouter") == "connected" or
+                    dependencies.get("gemini") == "connected")
     overall_status: Literal["healthy", "unhealthy"] = (
-        "healthy" if essential_connected else "unhealthy"
+        "healthy" if ai_connected else "unhealthy"
     )
 
     response = HealthResponse(

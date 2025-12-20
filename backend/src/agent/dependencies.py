@@ -18,11 +18,11 @@ def create_book_agent() -> BookAgent:
 
 # Verify that required dependencies are available
 try:
-    import google.genai as genai  # type: ignore
+    from openai import OpenAI
 except ImportError:
     raise ImportError(
-        "google-genai package is required for the BookAgent. "
-        "Please install it with: pip install google-genai"
+        "openai package is required for the BookAgent. "
+        "Please install it with: pip install openai"
     )
 
 logger = logging.getLogger(__name__)

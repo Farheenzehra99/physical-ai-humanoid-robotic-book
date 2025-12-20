@@ -77,6 +77,7 @@ const config = {
 // Navbar
 navbar: {
   title: "Physical AI & Humanoid Robotics",
+  hideOnScroll: true,
   // logo: {
   //   alt: "Physical AI Logo",
   //   src: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0rl-R5jIM8tUlg6-kgD2TN10VtwugHYqLcZMMztqJZmDolJ_RsbFy8_MJRXmQf1EhR3Y&usqp=CAU",
@@ -127,13 +128,9 @@ navbar: {
                 label: "Module-3",
                 to: "/docs/module-03-ai-robot-brain/chapter-07-isaac-sim-sdk/page-20-setting-up-isaac-sdk",
               },
-                            {
-                label: "Module-3",
-                to: "/docs/module-03-ai-robot-brain/chapter-07-isaac-sim-sdk/page-20-setting-up-isaac-sdk",
-              },
               {
                 label: "Module-4",
-                to: "/docs/module-05-integrated-rag-chatbot/api-usage",
+                to: "/docs/module-05-integrated-rag-chatbot/intro",
               },
 
             ],

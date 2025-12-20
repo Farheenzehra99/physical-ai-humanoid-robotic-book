@@ -134,8 +134,8 @@ retrieved context from the knowledge base.
             # Validate that required API keys are available
             if not settings.is_configured:
                 missing_keys = []
-                if not settings.gemini_api_key:
-                    missing_keys.append("GEMINI_API_KEY")
+                if not settings.openrouter_api_key and not settings.gemini_api_key:
+                    missing_keys.append("OPENROUTER_API_KEY or GEMINI_API_KEY")
                 if not settings.cohere_api_key:
                     missing_keys.append("COHERE_API_KEY")
                 if not settings.qdrant_url:

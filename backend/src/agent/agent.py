@@ -1,17 +1,18 @@
 """
-Google Gemini Agent configuration for the RAG system.
+OpenAI Assistants API configuration for the RAG system.
 
-This module configures the Google Gemini Agent with the retrieval tool
-and grounding instructions.
+This module configures the OpenAI Assistant with the retrieval tool
+and grounding instructions using the OpenAI Assistants API.
 """
 
 import logging
 import re
+import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, List
 
-import google.genai as genai  # type: ignore
+from openai import OpenAI
 
 from .tools import retrieve_context
 from .tools.retrieval_tool import retrieve_context_async
@@ -50,19 +51,42 @@ class BookAgent:
     """
     RAG Assistant for answering questions about the Physical AI book.
 
-    Uses Google Gemini API with retrieval for grounded responses.
+    Uses OpenAI Assistants API with retrieval for grounded responses.
     """
 
     def __init__(self):
         """Initialize the assistant with configuration."""
         self.settings = get_settings()
         self.system_prompt = load_system_prompt()
-        self.client = genai.Client(
-        api_key=self.settings.gemini_api_key
-         )
 
-        self.model_name = self.settings.gemini_model  # e.g. gemini-1.5-flash
-        
+        # Initialize OpenAI client
+        self.client = OpenAI(api_key=self.settings.openrouter_api_key or self.settings.gemini_api_key)
+
+        # Define the tool that the assistant can use
+        self.tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "retrieve_context",
+                    "description": "Retrieve relevant document chunks from the Physical AI & Humanoid Robotics book",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "query": {
+                                "type": "string",
+                                "description": "The search query text - should capture the key concepts being asked about"
+                            },
+                            "top_k": {
+                                "type": "integer",
+                                "description": "Number of results to return (default: 5, max: 20)",
+                                "default": 5
+                            }
+                        },
+                        "required": ["query"]
+                    }
+                }
+            }
+        ]
 
     async def run(
         self,
@@ -116,12 +140,16 @@ Please focus your answer on the selected text while using retrieved context for 
         logger.info(f"Running assistant with question: {question[:100]}...")
 
         try:
+            # For now, since we're not using the full Assistants API in this implementation,
+            # we'll implement the RAG flow directly while keeping the structure for when
+            # the Assistants API is properly implemented
+
             # Retrieve context first (handle gracefully if retrieval fails)
             retrieval_results = []
             context_str = ""
 
             try:
-                retrieval_results = await retrieve_context_async(question, top_k)
+                retrieval_results = await retrieve_context_async(user_input, top_k)
 
                 # Format context from retrieval results
                 if retrieval_results:
@@ -138,18 +166,18 @@ Please focus your answer on the selected text while using retrieved context for 
             # Create a message with context and user question
             full_message = context_str + user_input
 
-            # Call Google Gemini API
-            response = self.client.models.generate_content(
-                model=self.model_name,
-                contents=full_message,
-                config={
-                    "system_instruction": self.system_prompt,
-                    "temperature": 0.3,
-                    "max_output_tokens": 1000
-                }
+            # Call the OpenAI-compatible API (OpenRouter)
+            response = self.client.chat.completions.create(
+                model=self.settings.ai_model_name if hasattr(self.settings, 'ai_model_name') else self.settings.openrouter_model,
+                messages=[
+                    {"role": "system", "content": self.system_prompt},
+                    {"role": "user", "content": full_message}
+                ],
+                temperature=0.3,
+                max_tokens=1000
             )
 
-            raw_output = response.text if response and response.text else ""
+            raw_output = response.choices[0].message.content if response.choices else ""
 
             # Extract citations from the response
             citations = self._extract_citations(raw_output)

@@ -98,8 +98,8 @@ async def chat(
         settings = get_settings()
         if not settings.is_configured:
             missing_keys = []
-            if not settings.gemini_api_key:
-                missing_keys.append("GEMINI_API_KEY")
+            if not settings.openrouter_api_key and not settings.gemini_api_key:
+                missing_keys.append("OPENROUTER_API_KEY or GEMINI_API_KEY")
             if not settings.cohere_api_key:
                 missing_keys.append("COHERE_API_KEY")
             if not settings.qdrant_url:
@@ -132,7 +132,7 @@ async def chat(
                 request_id=request_id,
                 processing_time_ms=processing_time_ms,
                 retrieval_count=result.retrieval_count,
-                model_used=settings.gemini_model
+                model_used=settings.ai_model_name
             )
         )
 
@@ -154,10 +154,11 @@ async def chat(
         logger.error(f"[{request_id}] Chat processing failed: {e}")
         # Check for specific error types
         error_msg = str(e).lower()
-        if ("openai" in error_msg or "api" in error_msg) or ("gemini" in error_msg or "google" in error_msg):
+        if ("openai" in error_msg or "api" in error_msg or "openrouter" in error_msg) or ("gemini" in error_msg or "google" in error_msg):
+            service_name = "openrouter" if "openrouter" in error_msg or ("openai" in error_msg and "api" in error_msg) else "gemini"
             raise ServiceUnavailableError(
                 message="AI service temporarily unavailable. Please try again later.",
-                service="gemini",
+                service=service_name,
                 retry_after=30
             )
         elif "qdrant" in error_msg or "vector" in error_msg:

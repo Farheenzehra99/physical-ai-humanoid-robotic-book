@@ -1,137 +1,680 @@
+/* Hero Section - Full Page Cover */
 .heroSection {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 4rem 2rem;
-  gap: 3rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  min-height: 80vh;
-  background: linear-gradient(135deg, #f8f9ff 0%, #e6f7ff 100%);
-}
-
-.bookCoverContainer {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.bookCoverPlaceholder {
-  width: 300px;
-  height: 400px;
-  background: linear-gradient(135deg, #0A0E27 0%, #00D9FF 100%);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
   position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 50%, #0d1f3c 100%);
   overflow: hidden;
+  padding: 2rem;
+}
+
+/* Animated Background Elements */
+.backgroundOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.gridLines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    linear-gradient(rgba(0, 217, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 217, 255, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: gridPulse 4s ease-in-out infinite;
+}
+
+@keyframes gridPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.glowOrb1 {
+  position: absolute;
+  top: 20%;
+  left: 10%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(0, 217, 255, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: float1 8s ease-in-out infinite;
+}
+
+.glowOrb2 {
+  position: absolute;
+  bottom: 20%;
+  right: 10%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(138, 43, 226, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: float2 10s ease-in-out infinite;
+}
+
+@keyframes float1 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(30px, -30px); }
+}
+
+@keyframes float2 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-20px, 20px); }
+}
+
+/* Main Content Container */
+.heroContent {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 4rem;
+  max-width: 1200px;
+  width: 100%;
+}
+
+/* Robot Visual Section */
+.robotVisual {
+  flex: 0 0 auto;
+}
+
+.robotContainer {
+  position: relative;
+  width: 280px;
+  height: 350px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, rgba(0, 217, 255, 0.1) 0%, rgba(138, 43, 226, 0.1) 100%);
+  border-radius: 20px;
+  border: 1px solid rgba(0, 217, 255, 0.2);
+  backdrop-filter: blur(10px);
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.bookCoverPlaceholder:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+.robotContainer:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow:
+    0 35px 70px rgba(0, 217, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
-.bookCoverImage {
-  font-size: 8rem;
-  filter: drop-shadow(0 0 10px rgba(0, 217, 255, 0.5));
+.robotGlow {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(0, 217, 255, 0.4) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: robotPulse 3s ease-in-out infinite;
 }
 
-.contentContainer {
+@keyframes robotPulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+}
+
+.robotEmoji {
+  font-size: 10rem;
+  filter: drop-shadow(0 0 30px rgba(0, 217, 255, 0.5));
+  animation: robotFloat 4s ease-in-out infinite;
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes robotFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+/* Text Content Section */
+.textContent {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #0A0E27;
-  margin: 0;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-}
-
-.subtitle {
-  font-size: 1.2rem;
-  color: #555;
-  margin: 0;
-  line-height: 1.5;
   max-width: 600px;
 }
 
-.author {
-  font-size: 1.1rem;
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0, 217, 255, 0.1);
+  border: 1px solid rgba(0, 217, 255, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
   color: #00D9FF;
+  font-size: 0.9rem;
   font-weight: 500;
-  margin: 0.5rem 0;
-  font-style: italic;
+  margin-bottom: 1.5rem;
 }
 
-.buttons {
+.mainTitle {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 1rem 0;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.highlight {
+  background: linear-gradient(135deg, #00D9FF 0%, #8A2BE2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  font-size: 1.5rem;
+  color: #00D9FF;
+  margin: 0 0 1rem 0;
+  font-weight: 600;
+}
+
+.description {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 1rem 0;
+  line-height: 1.6;
+}
+
+.author {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 0 2rem 0;
+}
+
+.authorName {
+  color: #00D9FF;
+  font-weight: 600;
+}
+
+/* Button Group */
+.buttonGroup {
   display: flex;
   gap: 1rem;
-  margin-top: 1rem;
+  margin-bottom: 2rem;
   flex-wrap: wrap;
 }
 
-.additionalButtons {
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #00D9FF 0%, #0099cc 100%);
+  color: #0a0a1a;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 217, 255, 0.3);
+}
+
+.primaryButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 217, 255, 0.4);
+  color: #0a0a1a;
+  text-decoration: none;
+}
+
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: transparent;
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.secondaryButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+/* Features Row */
+.features {
   display: flex;
-  gap: 1rem;
-  margin-top: 0.5rem;
+  gap: 1.5rem;
   flex-wrap: wrap;
 }
 
-/* Responsive design */
+.featureItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.95rem;
+}
+
+.featureItem span {
+  color: #00D9FF;
+}
+
+/* Responsive Design */
 @media (max-width: 996px) {
-  .heroSection {
+  .heroContent {
     flex-direction: column;
     text-align: center;
-    padding: 3rem 1rem;
-    gap: 2rem;
-    min-height: auto;
+    gap: 3rem;
   }
 
-  .contentContainer {
-    align-items: center;
-  }
-
-  .buttons, .additionalButtons {
+  .textContent {
+    display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
   }
 
-  .title {
-    font-size: 2rem;
+  .mainTitle {
+    font-size: 2.8rem;
   }
 
-  .subtitle {
-    font-size: 1.1rem;
+  .robotContainer {
+    width: 220px;
+    height: 280px;
   }
 
-  .bookCoverPlaceholder {
-    width: 250px;
-    height: 330px;
+  .robotEmoji {
+    font-size: 7rem;
+  }
+
+  .buttonGroup {
+    justify-content: center;
+  }
+
+  .features {
+    justify-content: center;
   }
 }
 
 @media (max-width: 768px) {
-  .title {
+  .heroSection {
+    padding: 1.5rem;
+    min-height: auto;
+    padding-top: 80px;
+    padding-bottom: 40px;
+  }
+
+  .mainTitle {
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    font-size: 1.2rem;
+  }
+
+  .description {
+    font-size: 1rem;
+  }
+
+  .robotContainer {
+    width: 180px;
+    height: 230px;
+  }
+
+  .robotEmoji {
+    font-size: 5rem;
+  }
+
+  .buttonGroup {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .features {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .glowOrb1,
+  .glowOrb2 {
+    display: none;
+  }
+}
+
+/* ===================== */
+/* Homepage Wrapper */
+/* ===================== */
+.homepageWrapper {
+  width: 100%;
+}
+
+/* ===================== */
+/* Section Common Styles */
+/* ===================== */
+.sectionContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.sectionTitle {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  text-align: center;
+  margin: 0 0 1rem 0;
+}
+
+.sectionSubtitle {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  margin: 0 0 3rem 0;
+}
+
+/* ===================== */
+/* Research Areas Section */
+/* ===================== */
+.researchSection {
+  background: linear-gradient(180deg, #0d1f3c 0%, #0a0a1a 100%);
+  padding: 5rem 0;
+}
+
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+.researchCard {
+  background: linear-gradient(145deg, rgba(0, 217, 255, 0.08) 0%, rgba(138, 43, 226, 0.08) 100%);
+  border: 1px solid rgba(0, 217, 255, 0.2);
+  border-radius: 16px;
+  padding: 2rem;
+  transition: all 0.3s ease;
+}
+
+.researchCard:hover {
+  transform: translateY(-8px);
+  border-color: rgba(0, 217, 255, 0.4);
+  box-shadow: 0 20px 40px rgba(0, 217, 255, 0.15);
+}
+
+.cardIcon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.cardTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 1rem 0;
+}
+
+.cardDescription {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+  margin: 0 0 1.5rem 0;
+}
+
+.cardLink {
+  color: #00D9FF;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.cardLink:hover {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+/* ===================== */
+/* Assistant Section */
+/* ===================== */
+.assistantSection {
+  background: #0a0a1a;
+  padding: 5rem 0;
+}
+
+.assistantContent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+.assistantText {
+  text-align: left;
+}
+
+.assistantText .sectionTitle {
+  text-align: left;
+}
+
+.assistantDescription {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.7;
+  margin: 0 0 1.5rem 0;
+}
+
+.assistantFeatures {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 2rem 0;
+}
+
+.assistantFeatures li {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.75rem;
+  padding-left: 0;
+}
+
+.assistantCta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Chat Preview */
+.assistantPreview {
+  display: flex;
+  justify-content: center;
+}
+
+.chatPreview {
+  width: 100%;
+  max-width: 400px;
+  background: linear-gradient(145deg, rgba(20, 20, 40, 0.9) 0%, rgba(10, 10, 26, 0.9) 100%);
+  border: 1px solid rgba(0, 217, 255, 0.3);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.chatHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: rgba(0, 217, 255, 0.1);
+  border-bottom: 1px solid rgba(0, 217, 255, 0.2);
+}
+
+.chatDot {
+  width: 10px;
+  height: 10px;
+  background: #00D9FF;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.chatTitle {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.chatMessages {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.chatBubbleBot {
+  background: rgba(0, 217, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  padding: 1rem;
+  border-radius: 12px 12px 12px 4px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  max-width: 90%;
+}
+
+.chatBubbleUser {
+  background: linear-gradient(135deg, #00D9FF 0%, #0099cc 100%);
+  color: #0a0a1a;
+  padding: 0.75rem 1rem;
+  border-radius: 12px 12px 4px 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  align-self: flex-end;
+  max-width: 80%;
+}
+
+/* ===================== */
+/* CTA Section */
+/* ===================== */
+.ctaSection {
+  background: linear-gradient(135deg, #0a1628 0%, #1a0a2e 50%, #0a1628 100%);
+  padding: 5rem 0;
+  text-align: center;
+  position: relative;
+}
+
+.ctaSection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 217, 255, 0.15) 0%, rgba(138, 43, 226, 0.15) 100%);
+  pointer-events: none;
+}
+
+.ctaTitle {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 1rem 0;
+  position: relative;
+  z-index: 1;
+}
+
+.ctaDescription {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 2rem 0;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  z-index: 1;
+}
+
+.ctaButtons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+/* ===================== */
+/* Responsive - New Sections */
+/* ===================== */
+@media (max-width: 996px) {
+  .cardsGrid {
+    grid-template-columns: 1fr;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .assistantContent {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .assistantText {
+    text-align: center;
+  }
+
+  .assistantText .sectionTitle {
+    text-align: center;
+  }
+
+  .assistantCta {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .sectionTitle {
+    font-size: 2rem;
+  }
+
+  .ctaTitle {
     font-size: 1.8rem;
   }
 
-  .bookCoverPlaceholder {
-    width: 200px;
-    height: 270px;
+  .researchSection,
+  .assistantSection,
+  .ctaSection {
+    padding: 3rem 0;
   }
 
-  .bookCoverImage {
-    font-size: 6rem;
+  .sectionContainer {
+    padding: 0 1rem;
+  }
+
+  .ctaButtons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .ctaButtons .primaryButton,
+  .ctaButtons .secondaryButton {
+    width: 100%;
+    max-width: 300px;
   }
 }
