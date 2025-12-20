@@ -74,22 +74,37 @@ const config = {
         },
       ],
 
-      // Navbar
-      navbar: {
-        title: "Physical AI & Humanoid Robotics",
-        logo: {
-          alt: "Physical AI Logo",
-          src: "img/logo.svg",
-        },
-        items: [
-          {
-            href: "https://github.com/your-org/physical-ai-humanoid-robotics",
-            label: "GitHub",
-            position: "right",
-          },
-        ],
-      },
-
+// Navbar
+navbar: {
+  title: "Physical AI & Humanoid Robotics",
+  hideOnScroll: true,
+  // logo: {
+  //   alt: "Physical AI Logo",
+  //   src: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0rl-R5jIM8tUlg6-kgD2TN10VtwugHYqLcZMMztqJZmDolJ_RsbFy8_MJRXmQf1EhR3Y&usqp=CAU",
+  // },
+  items: [
+    {
+      to: "/docs/",
+      label: "Docs",
+      position: "left",
+    },
+    {
+      to: "/auth/signin",
+      label: "Sign In",
+      position: "right",
+    },
+    {
+      to: "/auth/signup",
+      label: "Sign Up",
+      position: "right",
+    },
+    {
+      href: "https://github.com/your-org/physical-ai-humanoid-robotics",
+      label: "GitHub",
+      position: "right",
+    },
+  ],
+},
       // Footer
       footer: {
         style: "dark",
@@ -98,37 +113,42 @@ const config = {
             title: "Curriculum",
             items: [
               {
-                label: "Weeks 1-3: Foundations",
-                to: "/docs/week-01-foundations/01-ubuntu-setup",
+                label: "Introduction & Setup",
+                to: "/docs/introduction/INTRODUCTION",
               },
               {
-                label: "Weeks 4-6: AI Training",
-                to: "/docs/week-04-isaac-setup/01-isaac-sim-installation",
+                label: "Module-1",
+                to: "/docs/module-01-foundations/chapter-01-ros2-nervous-system/page-01-what-problem-does-ros2-solve",
               },
               {
-                label: "Weeks 7-9: Deployment",
-                to: "/docs/week-07-unity/01-unity-ros-bridge",
+                label: "Module-2",
+                to: "/docs/module-02-digital-twin/chapter-04-gazebo-physics-simulation/page-10-why-simulation-matters",
               },
               {
-                label: "Weeks 10-13: Hardware",
-                to: "/docs/week-10-hardware/01-unitree-sdk",
+                label: "Module-3",
+                to: "/docs/module-03-ai-robot-brain/chapter-07-isaac-sim-sdk/page-20-setting-up-isaac-sdk",
               },
+              {
+                label: "Module-4",
+                to: "/docs/module-05-integrated-rag-chatbot/intro",
+              },
+
             ],
           },
           {
             title: "Resources",
             items: [
               {
-                label: "Skills Documentation",
-                to: "/skills",
+                label: "Documentation",
+                to: "/docs/",
               },
               {
-                label: "Agents & Workflows",
-                to: "/agents",
+                label: "RAG Chatbot Guide",
+                to: "/docs/module-05-integrated-rag-chatbot/intro",
               },
               {
                 label: "Hardware Guides",
-                to: "/hardware",
+                to: "/docs/appendix/hardware-alternatives",
               },
               {
                 label: "Troubleshooting",
@@ -198,6 +218,11 @@ const config = {
         config: {},
       },
     }),
+
+  // Custom fields for runtime configuration
+  customFields: {
+    chatApiUrl: process.env.CHAT_API_URL || 'http://localhost:8000',
+  },
 
   plugins: [
     // PWA plugin for offline support

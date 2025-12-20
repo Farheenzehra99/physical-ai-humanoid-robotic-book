@@ -1,0 +1,339 @@
+openapi: 3.0.3
+info:
+  title: Physical AI Book RAG API
+  description: |
+    RAG-powered question answering API for the Physical AI & Humanoid Robotics book.
+
+    This API uses retrieval-augmented generation to provide grounded, cited answers
+    to questions about the book content. All responses are strictly based on
+    retrieved context from the knowledge base.
+  version: 1.0.0
+  contact:
+    name: API Support
+    url: https://github.com/Physical_AI_Humanoid_Robotics/issues
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.physical-ai-book.com/api/v1
+    description: Production server
+  - url: http://localhost:8000/api/v1
+    description: Local development server
+
+tags:
+  - name: Chat
+    description: Question answering endpoints
+
+paths:
+  /chat:
+    post:
+      tags:
+        - Chat
+      summary: Ask a question about the book
+      description: |
+        Submit a question about the Physical AI & Humanoid Robotics book.
+        The system retrieves relevant context and generates a grounded answer
+        with citations to the source material.
+
+        Optionally include selected text from the book to focus the answer
+        on a specific passage.
+      operationId: askQuestion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            examples:
+              simple_question:
+                summary: Simple question
+                value:
+                  question: "What is Physical AI?"
+              with_selected_text:
+                summary: Question with selected text
+                value:
+                  question: "Can you explain this further?"
+                  selected_text: "Physical AI refers to artificial intelligence systems that interact with the physical world through sensors and actuators."
+                  top_k: 8
+      responses:
+        '200':
+          description: Successful response with grounded answer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+              examples:
+                success:
+                  summary: Successful answer
+                  value:
+                    answer: "Physical AI refers to artificial intelligence systems designed to interact with and operate in the physical world. Unlike traditional AI that processes digital data, Physical AI systems use sensors to perceive their environment and actuators to take physical actions. [Source: Introduction to Physical AI](https://physical-ai-book.com/chapter-1)"
+                    citations:
+                      - source_url: "https://physical-ai-book.com/chapter-1"
+                        title: "Chapter 1: Introduction to Physical AI"
+                        chunk_id: "chunk_042"
+                        relevance_score: 0.92
+                    metadata:
+                      request_id: "550e8400-e29b-41d4-a716-446655440000"
+                      processing_time_ms: 423.5
+                      retrieval_count: 5
+                      model_used: "gpt-4o"
+                no_information:
+                  summary: No relevant information found
+                  value:
+                    answer: "I could not find information about quantum computing in the book. The Physical AI & Humanoid Robotics book focuses on robotics, embodied AI, and physical systems rather than quantum computing topics."
+                    citations: []
+                    metadata:
+                      request_id: "550e8400-e29b-41d4-a716-446655440001"
+                      processing_time_ms: 312.8
+                      retrieval_count: 5
+                      model_used: "gpt-4o"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                empty_question:
+                  summary: Empty question
+                  value:
+                    error: "validation_error"
+                    message: "Question cannot be empty or whitespace-only"
+                    details:
+                      field: "question"
+                      type: "value_error"
+                question_too_long:
+                  summary: Question exceeds maximum length
+                  value:
+                    error: "validation_error"
+                    message: "String should have at most 2000 characters"
+                    details:
+                      field: "question"
+                      type: "string_too_long"
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "rate_limit_exceeded"
+                message: "Too many requests. Please wait before retrying."
+                retry_after: 60
+        '503':
+          description: Service temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                qdrant_unavailable:
+                  summary: Vector database unavailable
+                  value:
+                    error: "service_unavailable"
+                    message: "Knowledge base temporarily unavailable. Please try again later."
+                    retry_after: 30
+                openai_unavailable:
+                  summary: AI service unavailable
+                  value:
+                    error: "service_unavailable"
+                    message: "AI service temporarily unavailable. Please try again later."
+                    retry_after: 30
+        '504':
+          description: Gateway timeout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "timeout"
+                message: "Request timed out. Please try again with a shorter question."
+
+  /health:
+    get:
+      tags:
+        - System
+      summary: Health check endpoint
+      description: Returns the health status of the API and its dependencies.
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: "healthy"
+                version: "1.0.0"
+                dependencies:
+                  qdrant: "connected"
+                  cohere: "connected"
+                  openai: "connected"
+        '503':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: "unhealthy"
+                version: "1.0.0"
+                dependencies:
+                  qdrant: "disconnected"
+                  cohere: "connected"
+                  openai: "connected"
+
+components:
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - question
+      properties:
+        question:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: User question about the book
+          example: "What is Physical AI?"
+        selected_text:
+          type: string
+          maxLength: 5000
+          nullable: true
+          description: Optional selected text from book for focused answers
+          example: "Physical AI systems use sensors and actuators to interact with the real world."
+        top_k:
+          type: integer
+          minimum: 1
+          maximum: 20
+          default: 5
+          description: Number of retrieval results to use
+          example: 5
+
+    ChatResponse:
+      type: object
+      required:
+        - answer
+        - citations
+        - metadata
+      properties:
+        answer:
+          type: string
+          description: Generated answer grounded in retrieved context
+        citations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Citation'
+          description: List of sources used in the answer
+        metadata:
+          $ref: '#/components/schemas/ResponseMetadata'
+
+    Citation:
+      type: object
+      required:
+        - source_url
+        - title
+        - chunk_id
+        - relevance_score
+      properties:
+        source_url:
+          type: string
+          format: uri
+          description: URL of the source document
+          example: "https://physical-ai-book.com/chapter-1"
+        title:
+          type: string
+          description: Title of the document/section
+          example: "Chapter 1: Introduction to Physical AI"
+        chunk_id:
+          type: string
+          description: Unique identifier for the chunk
+          example: "chunk_042"
+        relevance_score:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: Similarity score (0-1)
+          example: 0.92
+
+    ResponseMetadata:
+      type: object
+      required:
+        - request_id
+        - processing_time_ms
+        - retrieval_count
+        - model_used
+      properties:
+        request_id:
+          type: string
+          format: uuid
+          description: Unique identifier for the request
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        processing_time_ms:
+          type: number
+          format: float
+          minimum: 0
+          description: Total processing time in milliseconds
+          example: 423.5
+        retrieval_count:
+          type: integer
+          minimum: 0
+          description: Number of chunks retrieved
+          example: 5
+        model_used:
+          type: string
+          description: LLM model used for generation
+          example: "gpt-4o"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code/type
+          example: "validation_error"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Question cannot be empty"
+        details:
+          type: object
+          nullable: true
+          description: Additional error context
+        retry_after:
+          type: integer
+          nullable: true
+          minimum: 0
+          description: Seconds to wait before retry
+          example: 30
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - version
+      properties:
+        status:
+          type: string
+          enum:
+            - healthy
+            - unhealthy
+          description: Overall health status
+        version:
+          type: string
+          description: API version
+          example: "1.0.0"
+        dependencies:
+          type: object
+          additionalProperties:
+            type: string
+            enum:
+              - connected
+              - disconnected
+          description: Status of external dependencies

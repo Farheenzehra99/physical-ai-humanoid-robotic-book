@@ -123,12 +123,43 @@ code {
 .navbar {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10px);
-  background-color: rgba(10, 14, 39, 0.95);
+  background-color: rgba(10, 14, 39, 0.85);
 }
 
 [data-theme='dark'] .navbar {
-  background-color: rgba(10, 14, 39, 0.98);
+  background-color: rgba(10, 14, 39, 0.85);
   border-bottom: 1px solid rgba(0, 217, 255, 0.1);
+}
+
+/* Transparent navbar when over hero section */
+.navbar.navbar--fixed-top {
+  background-color: rgba(10, 14, 39, 0.7);
+}
+
+[data-theme='dark'] .navbar.navbar--fixed-top {
+  background-color: rgba(10, 14, 39, 0.7);
+}
+
+/* Ensure navbar items are visible on transparent background */
+.navbar__item,
+.navbar__link {
+  color: white;
+}
+
+.navbar__item:hover,
+.navbar__link:hover {
+  color: var(--electric-cyan);
+}
+
+/* Make sure auth buttons are visible */
+.navbar__item a,
+.navbar__link a {
+  color: white;
+}
+
+.navbar__item a:hover,
+.navbar__link a:hover {
+  color: var(--electric-cyan);
 }
 
 .navbar__title {

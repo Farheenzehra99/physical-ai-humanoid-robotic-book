@@ -1,0 +1,111 @@
+ .container {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, rgba(0, 217, 255, 0.05) 0%, rgba(138, 43, 226, 0.05) 100%);
+  border: 1px solid rgba(0, 217, 255, 0.2);
+  border-radius: 12px;
+}
+
+.signInButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #0969da;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.signInButton:hover {
+  background-color: #0a59c2;
+}
+
+.translateButton,
+.loadingButton,
+.errorButton,
+.resetButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+}
+
+.translateButton {
+  background-color: #f6f8fa;
+  color: #24292f;
+}
+
+.translateButton:hover {
+  background-color: #ffffff;
+  border-color: #8c959f;
+}
+
+.loadingButton {
+  background-color: #f6f8fa;
+  color: #656d76;
+  cursor: wait;
+}
+
+.spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #e1e4e8;
+  border-top: 2px solid #0969da;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.hint {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.875rem;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.errorHint {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.875rem;
+  color: #856404;
+}
+
+.personalizedHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 1rem;
+  background: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Dark mode */
+ [data-theme='dark'] .container {
+  background: linear-gradient(135deg, rgba(0, 217, 255, 0.08) 0%, rgba(138, 43, 226, 0.08) 100%);
+}
+
+[data-theme='dark'] .hint {
+  color: var(--ifm-color-emphasis-500);
+} 
