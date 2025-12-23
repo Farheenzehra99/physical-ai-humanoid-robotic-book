@@ -8,7 +8,7 @@ the FastAPI application with all routes and middleware configured.
 import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
-from pydantic import BaseModel 
+from pydantic import BaseModel
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
