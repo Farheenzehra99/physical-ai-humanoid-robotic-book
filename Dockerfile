@@ -25,6 +25,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY backend/ /app/
 
+# Copy scripts
+COPY scripts/ /app/scripts/
+
+
 # Expose port
 EXPOSE 7860
 

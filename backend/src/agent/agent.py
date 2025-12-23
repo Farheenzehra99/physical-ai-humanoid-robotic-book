@@ -1,16 +1,15 @@
 """
-OpenAI Assistants API configuration for the RAG system.
+RAG Agent configuration for the book chatbot.
 
-This module configures the OpenAI Assistant with the retrieval tool
-and grounding instructions using the OpenAI Assistants API.
+This module configures the RAG Agent with the retrieval tool
+and grounding instructions using OpenRouter or Gemini.
 """
 
 import logging
 import re
-import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Optional
 
 from openai import OpenAI
 
@@ -51,7 +50,7 @@ class BookAgent:
     """
     RAG Assistant for answering questions about the Physical AI book.
 
-    Uses OpenAI Assistants API with retrieval for grounded responses.
+    Uses OpenRouter or Gemini API with retrieval for grounded responses.
     """
 
     def __init__(self):
@@ -59,34 +58,26 @@ class BookAgent:
         self.settings = get_settings()
         self.system_prompt = load_system_prompt()
 
-        # Initialize OpenAI client
-        self.client = OpenAI(api_key=self.settings.openrouter_api_key or self.settings.gemini_api_key)
+        # Initialize client based on available API keys
+        if self.settings.openrouter_api_key:
+            logger.info("Initializing OpenRouter client")
+            self.client = OpenAI(
+                api_key=self.settings.openrouter_api_key,
+                base_url="https://openrouter.ai/api/v1"
+            )
+            self.model_name = self.settings.openrouter_model
+        elif self.settings.gemini_api_key:
+            logger.info("Initializing Gemini client via OpenAI-compatible API")
+            # Google's Gemini API via generativelanguage endpoint (OpenAI compatible)
+            self.client = OpenAI(
+                api_key=self.settings.gemini_api_key,
+                base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+            )
+            self.model_name = self.settings.gemini_model
+        else:
+            raise ValueError("No AI API key configured. Set OPENROUTER_API_KEY or GEMINI_API_KEY")
 
-        # Define the tool that the assistant can use
-        self.tools = [
-            {
-                "type": "function",
-                "function": {
-                    "name": "retrieve_context",
-                    "description": "Retrieve relevant document chunks from the Physical AI & Humanoid Robotics book",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "query": {
-                                "type": "string",
-                                "description": "The search query text - should capture the key concepts being asked about"
-                            },
-                            "top_k": {
-                                "type": "integer",
-                                "description": "Number of results to return (default: 5, max: 20)",
-                                "default": 5
-                            }
-                        },
-                        "required": ["query"]
-                    }
-                }
-            }
-        ]
+        logger.info(f"Using model: {self.model_name}")
 
     async def run(
         self,
@@ -134,22 +125,16 @@ Please adjust your response to match the user's experience level and learning pr
 Question: {question}
 
 Please focus your answer on the selected text while using retrieved context for additional information."""
-        else:
-            user_input = question
 
         logger.info(f"Running assistant with question: {question[:100]}...")
 
         try:
-            # For now, since we're not using the full Assistants API in this implementation,
-            # we'll implement the RAG flow directly while keeping the structure for when
-            # the Assistants API is properly implemented
-
             # Retrieve context first (handle gracefully if retrieval fails)
             retrieval_results = []
             context_str = ""
 
             try:
-                retrieval_results = await retrieve_context_async(user_input, top_k)
+                retrieval_results = await retrieve_context_async(question, top_k)
 
                 # Format context from retrieval results
                 if retrieval_results:
@@ -166,9 +151,9 @@ Please focus your answer on the selected text while using retrieved context for 
             # Create a message with context and user question
             full_message = context_str + user_input
 
-            # Call the OpenAI-compatible API (OpenRouter)
+            # Call the AI API using OpenAI-compatible format
             response = self.client.chat.completions.create(
-                model=self.settings.ai_model_name if hasattr(self.settings, 'ai_model_name') else self.settings.openrouter_model,
+                model=self.model_name,
                 messages=[
                     {"role": "system", "content": self.system_prompt},
                     {"role": "user", "content": full_message}

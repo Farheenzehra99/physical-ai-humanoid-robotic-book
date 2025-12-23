@@ -221,7 +221,7 @@ navbar: {
 
   // Custom fields for runtime configuration
   customFields: {
-    chatApiUrl: process.env.CHAT_API_URL || 'http://localhost:8000',
+    chatApiUrl: process.env.CHAT_API_URL || 'https://farheenzehra99-ai-book.hf.space', // Update this with your actual Hugging Face API URL
   },
 
   plugins: [

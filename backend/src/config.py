@@ -3,7 +3,8 @@ Main configuration for the RAG Agent API.
 
 This module defines the application settings and configuration management.
 """
-from pydantic import BaseModel
+import os
+from pydantic import BaseModel, field_validator
 from pydantic_settings import BaseSettings
 from typing import Optional
 
@@ -19,9 +20,9 @@ class Settings(BaseSettings):
 
     # AI Model Configuration
     gemini_api_key: Optional[str] = None
-    gemini_model: str = "gemini-1.5-flash"
+    gemini_model: str = "gemini-2.0-flash-lite"
     openrouter_api_key: Optional[str] = None
-    openrouter_model: str = "openai/gpt-4o"  # Default to a free model
+    openrouter_model: str = "mistralai/devstral-2512:free"
 
     # Vector Database Configuration (Qdrant)
     qdrant_url: Optional[str] = None
@@ -33,6 +34,23 @@ class Settings(BaseSettings):
 
     # Database Configuration (Neon Serverless Postgres)
     database_url: str = "postgresql+asyncpg://user:password@ep-xxx.us-east-1.aws.neon.tech/rag_chatbot?sslmode=require"
+
+    @field_validator('openrouter_api_key', mode='before')
+    @classmethod
+    def get_openrouter_key(cls, v):
+        """Handle both OPENROUTER_API_KEY and OPEN_ROUTER_API_KEY env var names."""
+        if v:
+            return v
+        # Try alternate naming convention
+        return os.getenv('OPEN_ROUTER_API_KEY') or os.getenv('OPENROUTER_API_KEY')
+
+    @field_validator('openrouter_model', mode='before')
+    @classmethod
+    def get_openrouter_model(cls, v):
+        """Handle both OPENROUTER_MODEL and OPEN_ROUTER_MODEL env var names."""
+        if v and v != "mistralai/devstral-2512:free":
+            return v
+        return os.getenv('OPEN_ROUTER_MODEL') or os.getenv('OPENROUTER_MODEL') or "mistralai/devstral-2512:free"
 
     # Get the API key from environment - prioritize OpenRouter over Gemini
     @property
@@ -57,7 +75,7 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
-        case_sensitive = True
+        case_sensitive = False  # Allow case-insensitive env var names
         extra = "ignore"
 
 

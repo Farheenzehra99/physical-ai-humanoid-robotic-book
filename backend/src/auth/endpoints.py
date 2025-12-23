@@ -5,7 +5,7 @@ This module implements the API endpoints for authentication
 including signup with profile data collection.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, Any
 from ..better_auth_mock import BaseClient, User
@@ -19,6 +19,7 @@ from .config import auth_settings
 from .dependencies import get_current_active_user
 import os
 import logging
+from datetime import datetime, timedelta
 
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
@@ -79,20 +80,17 @@ async def extended_signup(
 @router.post("/signin", response_model=LoginResponse)
 async def login_user(
     request: Request,
+    response: Response,
     credentials: LoginRequest
 ):
     """
     Authenticate existing user with rate limiting and security measures.
+    Sets cross-domain cookies for session persistence.
     """
     try:
         # Basic rate limiting - in production, use Redis or similar for distributed rate limiting
-        # For now, we'll implement a simple in-memory rate limiter per IP
-        client_ip = request.client.host
+        client_ip = request.client.host if request.client else "unknown"
         current_time = __import__('time').time()
-
-        # Check if we've seen this IP recently (simple in-memory rate limiting)
-        # This is a simplified implementation - in production, use Redis or similar
-        # For now, we'll just continue with the main logic
 
         # Sign in with Better Auth
         session = await auth_client.sign_in_with_email_password(
@@ -106,6 +104,19 @@ async def login_user(
 
         # Successful login - log for security monitoring
         logging.info(f"Successful login for user: {session.user.id} from IP: {client_ip}")
+
+        # Set cross-domain cookie for session persistence
+        # Cookie settings for cross-origin requests (Vercel frontend -> HF Spaces backend)
+        cookie_max_age = 7 * 24 * 60 * 60  # 7 days in seconds
+        response.set_cookie(
+            key="better-auth.session_token",
+            value=session.token,
+            max_age=cookie_max_age,
+            httponly=True,
+            secure=auth_settings.cookie_secure,  # True for HTTPS
+            samesite="none",  # Required for cross-domain
+            path="/"
+        )
 
         return LoginResponse(
             success=True,
@@ -128,9 +139,9 @@ async def login_user(
 
 
 @router.post("/signout", response_model=SignOutResponse)
-async def logout_user(request: Request):
+async def logout_user(request: Request, response: Response):
     """
-    Log out current user.
+    Log out current user and clear session cookie.
     """
     try:
         # Get token from cookies or headers
@@ -140,6 +151,14 @@ async def logout_user(request: Request):
         if auth_token:
             # Sign out with Better Auth
             await auth_client.sign_out(auth_token)
+
+        # Clear the session cookie
+        response.delete_cookie(
+            key="better-auth.session_token",
+            path="/",
+            secure=auth_settings.cookie_secure,
+            samesite="none"
+        )
 
         return SignOutResponse(
             success=True,

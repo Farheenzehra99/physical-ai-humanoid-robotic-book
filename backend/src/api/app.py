@@ -68,15 +68,32 @@ retrieved context from the knowledge base.
         openapi_url="/openapi.json"
     )
 
-    
-    # Configure CORS
+
+    # Configure CORS - Explicit origins required for credentials
+    import os
+    env_origins = os.getenv("ALLOWED_ORIGINS", "")
+    env_origins_list = [o.strip() for o in env_origins.split(",") if o.strip()]
+
+    # Production and development origins
+    ALLOWED_ORIGINS = list(set(env_origins_list + [
+        "https://physical-ai-humanoid-robotic-book-kmg2eqtlm.vercel.app",
+        "https://physical-ai-humanoid-robotic-book-ten.vercel.app",
+        "https://physical-ai-robotics.dev",
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:8000",
+        "http://localhost:8080",
+    ]))
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # Configure appropriately for production
+        allow_origins=ALLOWED_ORIGINS,
         allow_credentials=True,
-        allow_methods=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
         allow_headers=["*"],
+        expose_headers=["Set-Cookie", "X-Request-Id"],
     )
+
 
     # Register error handlers
     register_error_handlers(app)

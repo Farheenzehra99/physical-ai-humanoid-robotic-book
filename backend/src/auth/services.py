@@ -7,7 +7,7 @@ including user registration, sign in, and profile management.
 
 from typing import Dict, Any, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
-from .better_auth_mock import User
+from ..better_auth_mock import User
 from ..database.crud import get_user_profile_by_user_id, update_user_profile, create_user_profile
 from ..database.schemas import UserProfileCreate, UserProfileUpdate
 from .main import auth_client

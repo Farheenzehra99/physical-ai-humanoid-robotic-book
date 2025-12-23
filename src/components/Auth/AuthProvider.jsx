@@ -122,6 +122,7 @@ export const AuthProvider = ({ children }) => {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',  // Include cookies for cross-origin requests
         body: JSON.stringify({ email, password }),
       });
 
@@ -179,6 +180,7 @@ export const AuthProvider = ({ children }) => {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',  // Include cookies for cross-origin requests
         body: JSON.stringify({
           email: userData.email,
           password: userData.password,
@@ -247,7 +249,8 @@ export const AuthProvider = ({ children }) => {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
-          }
+          },
+          credentials: 'include'  // Include cookies for cross-origin requests
         });
       }
     } catch (error) {
@@ -273,6 +276,7 @@ export const AuthProvider = ({ children }) => {
         headers: {
           'Authorization': `Bearer ${state.token}`,
         },
+        credentials: 'include',  // Include cookies for cross-origin requests
       });
 
       if (response.ok) {
@@ -306,6 +310,7 @@ export const AuthProvider = ({ children }) => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${state.token}`,
         },
+        credentials: 'include',  // Include cookies for cross-origin requests
         body: JSON.stringify(profileData),
       });
 

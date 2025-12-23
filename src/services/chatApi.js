@@ -25,7 +25,7 @@ export async function sendChatMessage(question, selectedText = null, topK = 5) {
     }
 
     // Get auth token from localStorage if available
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
 
     const headers = { 'Content-Type': 'application/json' };
     if (token) {
@@ -35,6 +35,7 @@ export async function sendChatMessage(question, selectedText = null, topK = 5) {
     const response = await fetch(`${apiUrl}/chat`, {
       method: 'POST',
       headers: headers,
+      credentials: 'include',  // Include cookies for cross-origin requests
       body: JSON.stringify(body),
       signal: controller.signal,
     });
