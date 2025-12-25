@@ -78,6 +78,7 @@ retrieved context from the knowledge base.
     ALLOWED_ORIGINS = list(set(env_origins_list + [
         "https://physical-ai-humanoid-robotic-book-kmg2eqtlm.vercel.app",
         "https://physical-ai-humanoid-robotic-book-ten.vercel.app",
+        "https://physical-ai-humanoid-robotic-book-bpivm88wi.vercel.app",
         "https://physical-ai-robotics.dev",
         "http://localhost:3000",
         "http://localhost:3001",
@@ -104,6 +105,17 @@ retrieved context from the knowledge base.
     app.include_router(auth_router, prefix=settings.api_prefix)
     app.include_router(personalize_router, prefix=settings.api_prefix)
     app.include_router(translate_router, prefix=settings.api_prefix)
+
+    # Root endpoint for Hugging Face health checks
+    @app.get("/")
+    async def root():
+        """Root endpoint for health checks and API info."""
+        return {
+            "status": "ok",
+            "service": "Physical AI & Humanoid Robotics RAG API",
+            "version": settings.api_version,
+            "docs": "/docs"
+        }
 
     # Define a model for frontend compatibility
     class FrontendChatRequest(BaseModel):

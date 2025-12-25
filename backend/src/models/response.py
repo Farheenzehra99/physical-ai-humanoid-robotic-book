@@ -66,6 +66,8 @@ class ResponseMetadata(BaseModel):
         model_used: LLM model used for generation
     """
 
+    model_config = {"protected_namespaces": ()}
+
     request_id: str = Field(
         default_factory=lambda: str(uuid.uuid4()),
         description="Unique identifier for the request"
