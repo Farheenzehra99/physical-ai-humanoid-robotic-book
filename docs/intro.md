@@ -32,6 +32,11 @@ This 13-week university capstone quarter takes students with **zero prior humano
 - PPO policy training for walking (Stable-Baselines3)
 - OpenVLA fine-tuning for language-conditioned tasks
 
+### Module 4: Vision-Language-Action (VLA)
+- **Chapter 8**: Voice-to-Action with OpenAI Whisper for speech recognition
+- **Chapter 9**: Cognitive Planning with LLMs for task decomposition
+- **Chapter 10**: Capstone Project - Autonomous humanoid demo
+
 ### Weeks 7-9: Visualization & Edge Deployment
 - Unity integration for 4K cinematic renders
 - TensorRT optimization (FP16/INT8 quantization)
@@ -101,9 +106,10 @@ By Week 13, you'll have:
 2. **Gazebo Walking Controller** - ZMP-based walking at 0.1 m/s
 3. **Isaac Sim RL Policy** - Trained PPO policy (10M timesteps, 0.5 m/s)
 4. **OpenVLA Integration** - Language-conditioned task execution
-5. **TensorRT Engine** - Optimized for Jetson Orin Nano (\&lt; 50ms latency)
-6. **Hardware Deployment** - Walking on Unitree Go2/G1 or custom robot
-7. **30-Minute Demo** - Continuous walking operation with no falls
+5. **Voice-to-Action Pipeline** - OpenAI Whisper + LLM task planning
+6. **TensorRT Engine** - Optimized for Jetson Orin Nano (\&lt; 50ms latency)
+7. **Hardware Deployment** - Walking on Unitree Go2/G1 or custom robot
+8. **30-Minute Demo** - Continuous walking operation with no falls
 
 ## 📖 Documentation Structure
 
@@ -141,4 +147,4 @@ This project is licensed under the MIT License - see [LICENSE](https://github.co
 
 ---
 
-**Ready to begin?** Start with [Week 1: Ubuntu 22.04 Setup](week-01-foundations/01-ubuntu-setup)
+**Ready to begin?** Start with [Module 1: ROS 2 Foundations](/docs/module-01-foundations/chapter-01-ros2-nervous-system/page-01-what-problem-does-ros2-solve)

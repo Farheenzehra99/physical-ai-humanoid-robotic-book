@@ -1,0 +1,8 @@
+{
+  "label": "Chapter 10: Capstone - Autonomous Humanoid",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "description": "Integrative capstone project combining all modules into an autonomous humanoid demo"
+  }
+}

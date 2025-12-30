@@ -130,7 +130,7 @@ navbar: {
               },
               {
                 label: "Module-4",
-                to: "/docs/module-05-integrated-rag-chatbot/intro",
+                to: "/docs/module-04-vision-language-action/chapter-08-voice-to-action/page-01-intro-speech-robotics",
               },
 
             ],
@@ -143,8 +143,8 @@ navbar: {
                 to: "/docs/",
               },
               {
-                label: "RAG Chatbot Guide",
-                to: "/docs/module-05-integrated-rag-chatbot/intro",
+                label: "VLA Capstone Guide",
+                to: "/docs/module-04-vision-language-action/chapter-10-capstone-autonomous-humanoid/page-01-project-overview",
               },
               {
                 label: "Hardware Guides",

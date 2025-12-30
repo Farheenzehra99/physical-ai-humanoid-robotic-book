@@ -1,0 +1,8 @@
+{
+  "label": "Chapter 9: Cognitive Planning",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "description": "LLM-based task decomposition and ROS 2 action generation"
+  }
+}
