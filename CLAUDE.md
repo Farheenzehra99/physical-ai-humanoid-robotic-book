@@ -210,6 +210,10 @@ Wait for consent; never auto-create ADRs. Group related decisions (stacks, authe
 See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
 
 ## Recent Changes
+- 001-vla-module: Added Python 3.10+ (code examples), MDX (documentation) + OpenAI (Whisper, GPT), ROS 2 Jazzy/Iron, Nav2, sounddevice, Docusaurus 3
 - 001-integrated-rag-chatbot: Added FastAPI backend with Qdrant vector database and Neon PostgreSQL for metadata
 - 001-integrated-rag-chatbot: Added Claude MCP integration for embeddings and RAG pipeline
-- 001-integrated-rag-chatbot: Added Docusaurus integration for book-embedded chatbot interface
+
+## Active Technologies
+- Python 3.10+ (code examples), MDX (documentation) + OpenAI (Whisper, GPT), ROS 2 Jazzy/Iron, Nav2, sounddevice, Docusaurus 3 (001-vla-module)
+- N/A (documentation only) (001-vla-module)
