@@ -3,14 +3,73 @@ Retrieval function for the RAG system.
 
 This module provides the retrieve function that searches the vector database
 for relevant document chunks based on the query using Cohere embeddings.
+
+Features:
+- Exponential backoff retry for rate limiting (429 errors)
+- Async support for non-blocking operations
+- Robust error handling with detailed logging
 """
 import os
 import logging
+import time
+import random
 from typing import List, Dict, Any, Optional
+from functools import wraps
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
+
+
+# Retry configuration
+MAX_RETRIES = 5
+BASE_DELAY = 1.0  # Initial delay in seconds
+MAX_DELAY = 60.0  # Maximum delay between retries
+JITTER_FACTOR = 0.1  # Random jitter to prevent thundering herd
+
+
+def retry_with_backoff(max_retries: int = MAX_RETRIES, base_delay: float = BASE_DELAY):
+    """
+    Decorator for retry with exponential backoff.
+
+    Handles 429 (rate limit) errors with intelligent backoff.
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            last_exception = None
+
+            for attempt in range(max_retries):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    last_exception = e
+                    error_str = str(e).lower()
+
+                    # Check if it's a rate limit error
+                    is_rate_limit = any(x in error_str for x in [
+                        "429", "rate limit", "too many requests",
+                        "quota exceeded", "please wait"
+                    ])
+
+                    if not is_rate_limit or attempt == max_retries - 1:
+                        # Not a rate limit error or last attempt
+                        raise
+
+                    # Calculate delay with exponential backoff + jitter
+                    delay = min(base_delay * (2 ** attempt), MAX_DELAY)
+                    jitter = delay * JITTER_FACTOR * random.random()
+                    total_delay = delay + jitter
+
+                    logging.warning(
+                        f"Rate limited (attempt {attempt + 1}/{max_retries}). "
+                        f"Retrying in {total_delay:.2f}s..."
+                    )
+                    time.sleep(total_delay)
+
+            raise last_exception
+        return wrapper
+    return decorator
 
 # Import Qdrant client to connect to the vector database
 try:
@@ -70,9 +129,43 @@ def get_qdrant_client() -> Optional[QdrantClient]:
     return _qdrant_client
 
 
+@retry_with_backoff(max_retries=MAX_RETRIES, base_delay=BASE_DELAY)
+def _generate_embedding_with_retry(client, text: str) -> List[float]:
+    """
+    Internal function to generate embedding with retry support.
+
+    This function is wrapped with the retry decorator to handle 429 errors.
+
+    Args:
+        client: Cohere client instance
+        text: The text to generate an embedding for
+
+    Returns:
+        List of floats representing the embedding
+
+    Raises:
+        Exception: If embedding generation fails after all retries
+    """
+    response = client.embed(
+        texts=[text],
+        model="embed-english-v3.0",
+        input_type="search_query"
+    )
+
+    if response.embeddings and len(response.embeddings) > 0:
+        return response.embeddings[0]
+    else:
+        raise ValueError("Empty embedding response from Cohere")
+
+
 def generate_embedding(text: str) -> Optional[List[float]]:
     """
     Generate embedding for text using Cohere embedding model.
+
+    Features:
+    - Automatic retry with exponential backoff for rate limiting
+    - Handles 429 errors gracefully
+    - Maximum 5 retries with up to 60s delay
 
     Args:
         text: The text to generate an embedding for
@@ -86,21 +179,9 @@ def generate_embedding(text: str) -> Optional[List[float]]:
         return None
 
     try:
-        # Use Cohere's embed-english-v3.0 model
-        response = client.embed(
-            texts=[text],
-            model="embed-english-v3.0",
-            input_type="search_query"
-        )
-
-        if response.embeddings and len(response.embeddings) > 0:
-            return response.embeddings[0]
-        else:
-            logger.warning("Empty embedding response from Cohere")
-            return None
-
+        return _generate_embedding_with_retry(client, text)
     except Exception as e:
-        logger.error(f"Failed to generate embedding: {e}")
+        logger.error(f"Failed to generate embedding after retries: {e}")
         return None
 
 
@@ -120,7 +201,7 @@ def retrieve(query: str, top_k: int = 5) -> List[Dict[str, Any]]:
         - chunk_id: Unique identifier for the chunk
         - score: Relevance score (0-1, higher is better)
     """
-    collection_name = os.getenv("QDRANT_COLLECTION", "book_chunks")
+    collection_name = os.getenv("QDRANT_COLLECTION", "rag-embeddings")
 
     # Get clients
     qdrant_client = get_qdrant_client()
@@ -196,7 +277,7 @@ def check_collection_exists(collection_name: str = None) -> bool:
         True if collection exists, False otherwise
     """
     if collection_name is None:
-        collection_name = os.getenv("QDRANT_COLLECTION", "book_chunks")
+        collection_name = os.getenv("QDRANT_COLLECTION", "rag-embeddings")
 
     qdrant_client = get_qdrant_client()
     if qdrant_client is None:
@@ -224,7 +305,7 @@ def get_collection_info(collection_name: str = None) -> Optional[Dict[str, Any]]
         Dictionary with collection info or None if failed
     """
     if collection_name is None:
-        collection_name = os.getenv("QDRANT_COLLECTION", "book_chunks")
+        collection_name = os.getenv("QDRANT_COLLECTION", "rag-embeddings")
 
     qdrant_client = get_qdrant_client()
     if qdrant_client is None:

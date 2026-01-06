@@ -3,23 +3,26 @@ FastAPI application factory.
 
 This module provides the create_app factory function for building
 the FastAPI application with all routes and middleware configured.
+
+Key features:
+- Proper CORS configuration for cross-domain requests
+- Lazy router loading with graceful fallback
+- Comprehensive error handling
+- RAG-powered chat endpoint
 """
 
 import logging
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Optional
 from pydantic import BaseModel
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routes import health_router, chat_router, personalize_router, translate_router
-from ..auth.endpoints import router as auth_router
-from .middleware import register_error_handlers
+from .middleware import register_error_handlers, setup_rate_limiting
 from ..config import get_settings
 from ..models.user import User
 from ..database import AsyncSessionLocal
 from ..auth.dependencies import get_current_user_optional
-
 
 logger = logging.getLogger(__name__)
 
@@ -68,13 +71,10 @@ retrieved context from the knowledge base.
         openapi_url="/openapi.json"
     )
 
-
-    # Configure CORS - Explicit origins required for credentials
+    # Configure CORS
     import os
     env_origins = os.getenv("ALLOWED_ORIGINS", "")
     env_origins_list = [o.strip() for o in env_origins.split(",") if o.strip()]
-
-    # Production and development origins
     ALLOWED_ORIGINS = list(set(env_origins_list + [
         "https://physical-ai-humanoid-robotic-book-kmg2eqtlm.vercel.app",
         "https://physical-ai-humanoid-robotic-book-ten.vercel.app",
@@ -85,7 +85,6 @@ retrieved context from the knowledge base.
         "http://localhost:8000",
         "http://localhost:8080",
     ]))
-
     app.add_middleware(
         CORSMiddleware,
         allow_origins=ALLOWED_ORIGINS,
@@ -95,18 +94,50 @@ retrieved context from the knowledge base.
         expose_headers=["Set-Cookie", "X-Request-Id"],
     )
 
-
     # Register error handlers
     register_error_handlers(app)
 
-    # Include routers
-    app.include_router(health_router, prefix=settings.api_prefix)
-    app.include_router(chat_router, prefix=settings.api_prefix)
-    app.include_router(auth_router, prefix=settings.api_prefix)
-    app.include_router(personalize_router, prefix=settings.api_prefix)
-    app.include_router(translate_router, prefix=settings.api_prefix)
+    # Setup rate limiting (optional, graceful fallback if slowapi not installed)
+    try:
+        setup_rate_limiting(app)
+        logger.info("Rate limiting enabled")
+    except ImportError:
+        logger.warning("slowapi not installed, rate limiting disabled")
+    except Exception as e:
+        logger.warning(f"Failed to setup rate limiting: {e}")
 
-    # Root endpoint for Hugging Face health checks
+    # Lazy-load routers with try-except for graceful degradation
+    try:
+        from .routes import health_router
+        app.include_router(health_router, prefix=settings.api_prefix)
+    except Exception as e:
+        logger.warning(f"Failed to include health_router: {e}")
+
+    try:
+        from .routes import chat_router
+        app.include_router(chat_router, prefix=settings.api_prefix)
+    except Exception as e:
+        logger.warning(f"Failed to include chat_router: {e}")
+
+    try:
+        from .routes import personalize_router
+        app.include_router(personalize_router, prefix=settings.api_prefix)
+    except Exception as e:
+        logger.warning(f"Failed to include personalize_router: {e}")
+
+    try:
+        from .routes import translate_router
+        app.include_router(translate_router, prefix=settings.api_prefix)
+    except Exception as e:
+        logger.warning(f"Failed to include translate_router: {e}")
+
+    try:
+        from ..auth.endpoints import router as auth_router
+        app.include_router(auth_router, prefix=settings.api_prefix)
+    except Exception as e:
+        logger.warning(f"Failed to include auth_router: {e}")
+
+    # Root endpoint for health checks
     @app.get("/")
     async def root():
         """Root endpoint for health checks and API info."""
@@ -117,50 +148,56 @@ retrieved context from the knowledge base.
             "docs": "/docs"
         }
 
-    # Define a model for frontend compatibility
+    # Frontend chat endpoint
     class FrontendChatRequest(BaseModel):
+        """Request model for frontend chat endpoint."""
         message: str
 
-    # Create a new /chat endpoint that's compatible with frontend requests
-    # This endpoint accepts 'message' field and routes through the RAG pipeline
     @app.post("/chat")
     async def frontend_chat_endpoint(
         req: FrontendChatRequest,
-        current_user: User = Depends(get_current_user_optional)
+        current_user: Optional[User] = Depends(get_current_user_optional)
     ):
         """
         Frontend-compatible chat endpoint that routes to the RAG pipeline.
-        Accepts 'message' field from frontend and converts it to the internal format.
+
+        Accepts 'message' field from frontend and converts to internal format.
+
+        Returns:
+            200: Successful response with 'reply' field
+            503: Service unavailable (quota exceeded, etc.)
         """
         logger.info(f"Received chat request: {req.message[:50]}...")
         try:
-            # Import here to avoid circular imports
             from ..agent.dependencies import get_agent_runner
             from ..config import get_settings
             from ..models.user_profile import UserProfile
             from sqlalchemy import select
 
             settings = get_settings()
-
-            # Get user profile if user is authenticated
             user_profile_data = None
+
+            # Get user profile for personalization
             if current_user:
-                # Query the user profile from the database
-                async with AsyncSessionLocal() as db:
-                    profile_query = select(UserProfile).where(UserProfile.user_id == current_user.id)
-                    profile_result = await db.execute(profile_query)
-                    profile = profile_result.scalar_one_or_none()
+                try:
+                    async with AsyncSessionLocal() as db:
+                        profile_query = select(UserProfile).where(
+                            UserProfile.user_id == current_user.id
+                        )
+                        profile_result = await db.execute(profile_query)
+                        profile = profile_result.scalar_one_or_none()
+                        if profile:
+                            user_profile_data = {
+                                "programming_level": profile.programming_level,
+                                "programming_languages": profile.programming_languages or [],
+                                "ai_knowledge_level": profile.ai_knowledge_level,
+                                "hardware_experience": profile.hardware_experience,
+                                "learning_style": profile.learning_style
+                            }
+                except Exception as profile_error:
+                    logger.warning(f"Failed to fetch user profile: {profile_error}")
 
-                    if profile:
-                        user_profile_data = {
-                            "programming_level": profile.programming_level,
-                            "programming_languages": profile.programming_languages or [],
-                            "ai_knowledge_level": profile.ai_knowledge_level,
-                            "hardware_experience": profile.hardware_experience,
-                            "learning_style": profile.learning_style
-                        }
-
-            # Validate that required API keys are available
+            # Check configuration
             if not settings.is_configured:
                 missing_keys = []
                 if not settings.openrouter_api_key and not settings.gemini_api_key:
@@ -172,19 +209,18 @@ retrieved context from the knowledge base.
                 if not settings.qdrant_api_key:
                     missing_keys.append("QDRANT_API_KEY")
 
-                return {"error": f"Missing required API keys: {', '.join(missing_keys)}", "reply": "Configuration error: Required API keys are missing."}
+                return {
+                    "error": f"Missing required API keys: {', '.join(missing_keys)}",
+                    "reply": "Configuration error: Required API keys are missing."
+                }
 
-            # Get the agent runner
+            # Run the RAG agent
             agent_runner = get_agent_runner()
-
-            # Run the agent with the message as the question
             result = await agent_runner.run(
-                question=req.message,  # Convert 'message' to 'question'
+                question=req.message,
                 top_k=5,
                 user_profile=user_profile_data
             )
-
-            # Return the response in a simple format for the frontend
             return {"reply": result.answer}
 
         except Exception as e:
@@ -193,14 +229,17 @@ retrieved context from the knowledge base.
             logger.error(f"Chat endpoint error: {e}")
             logger.error(f"Traceback: {traceback.format_exc()}")
 
-            # Handle quota exceeded errors gracefully
+            # Handle quota/rate limit errors
             if "RESOURCE_EXHAUSTED" in error_str or "429" in error_str:
                 return {
                     "error": "quota_exceeded",
-                    "reply": "The AI service is temporarily at capacity. Please try again in a few minutes or contact the administrator to upgrade the API quota."
+                    "reply": "The AI service is temporarily at capacity. Please try again later."
                 }
 
-            return {"error": "Chat service temporarily unavailable", "reply": "Sorry, I'm having trouble responding right now. Please try again later."}
+            return {
+                "error": "Chat service temporarily unavailable",
+                "reply": "Sorry, I'm having trouble responding right now. Please try again later."
+            }
 
     return app
 

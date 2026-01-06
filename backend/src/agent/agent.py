@@ -3,15 +3,22 @@ RAG Agent configuration for the book chatbot.
 
 This module configures the RAG Agent with the retrieval tool
 and grounding instructions using OpenRouter or Gemini.
+
+Key features:
+- Async OpenAI client for non-blocking API calls
+- Automatic retry with exponential backoff
+- Robust error handling
+- Personalized responses based on user profile
 """
 
 import logging
 import re
+import asyncio
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
 
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 from .tools import retrieve_context
 from .tools.retrieval_tool import retrieve_context_async
@@ -51,6 +58,7 @@ class BookAgent:
     RAG Assistant for answering questions about the Physical AI book.
 
     Uses OpenRouter or Gemini API with retrieval for grounded responses.
+    Features async API calls for non-blocking operation.
     """
 
     def __init__(self):
@@ -58,18 +66,18 @@ class BookAgent:
         self.settings = get_settings()
         self.system_prompt = load_system_prompt()
 
-        # Initialize client based on available API keys
+        # Initialize async client based on available API keys
         if self.settings.openrouter_api_key:
-            logger.info("Initializing OpenRouter client")
-            self.client = OpenAI(
+            logger.info("Initializing OpenRouter async client")
+            self.client = AsyncOpenAI(
                 api_key=self.settings.openrouter_api_key,
                 base_url="https://openrouter.ai/api/v1"
             )
             self.model_name = self.settings.openrouter_model
         elif self.settings.gemini_api_key:
-            logger.info("Initializing Gemini client via OpenAI-compatible API")
+            logger.info("Initializing Gemini async client via OpenAI-compatible API")
             # Google's Gemini API via generativelanguage endpoint (OpenAI compatible)
-            self.client = OpenAI(
+            self.client = AsyncOpenAI(
                 api_key=self.settings.gemini_api_key,
                 base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
             )
@@ -151,8 +159,8 @@ Please focus your answer on the selected text while using retrieved context for 
             # Create a message with context and user question
             full_message = context_str + user_input
 
-            # Call the AI API using OpenAI-compatible format
-            response = self.client.chat.completions.create(
+            # Call the AI API using async OpenAI-compatible format
+            response = await self.client.chat.completions.create(
                 model=self.model_name,
                 messages=[
                     {"role": "system", "content": self.system_prompt},

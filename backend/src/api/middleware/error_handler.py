@@ -163,15 +163,26 @@ def register_error_handlers(app: FastAPI) -> None:
     ) -> JSONResponse:
         """Handle unexpected exceptions (500)."""
         import traceback
+        import os
+
         error_detail = f"{type(exc).__name__}: {str(exc)}"
         logger.exception(f"Unexpected error: {error_detail}")
-        print(f"ERROR: {error_detail}")  # Also print to stdout for visibility
-        print(traceback.format_exc())  # Print full traceback
 
-        error_response = ErrorResponse(
-            error="internal_error",
-            message=f"Error: {error_detail}"  # Show actual error for debugging
-        )
+        # Only expose full error details in debug mode
+        debug_mode = os.getenv("DEBUG", "false").lower() == "true"
+
+        if debug_mode:
+            error_response = ErrorResponse(
+                error="internal_error",
+                message=error_detail,
+                details={"traceback": traceback.format_exc()}
+            )
+        else:
+            # Production: don't expose internal details
+            error_response = ErrorResponse(
+                error="internal_error",
+                message="An unexpected error occurred. Please try again later."
+            )
 
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

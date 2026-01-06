@@ -2,7 +2,7 @@ import time
 import logging
 import re
 from typing import Optional, List, Tuple
-import google.genai as genai  # type: ignore
+from google import genai
 from pathlib import Path
 
 from ..config import get_settings
