@@ -2,7 +2,7 @@ import time
 import logging
 import re
 from typing import Optional, List, Tuple
-from google import genai
+from openai import OpenAI
 from pathlib import Path
 
 from ..config import get_settings
@@ -16,26 +16,29 @@ PROMPT_TEMPLATE_PATH = Path(__file__).parent / "translation_prompt.md"
 class TranslationService:
     """Service for translating chapter content to Urdu using LLM."""
 
-def __init__(self):
-    self.settings = get_settings()
+    def __init__(self):
+        self.settings = get_settings()
 
-    # ✅ NEW Gemini client (safe)
-    self.client = genai.Client(
-        api_key=self.settings.gemini_api_key
-    )
+        # Initialize OpenAI client with support for both OpenRouter and Gemini
+        if self.settings.openrouter_api_key:
+            self.client = OpenAI(
+                api_key=self.settings.openrouter_api_key,
+                base_url="https://openrouter.ai/api/v1"
+            )
+            self.model_name = self.settings.openrouter_model
+        elif self.settings.gemini_api_key:
+            self.client = OpenAI(
+                api_key=self.settings.gemini_api_key,
+                base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+            )
+            self.model_name = self.settings.gemini_model
+        else:
+            raise ValueError("Either OpenRouter API key or Gemini API key must be configured")
 
-    # ✅ Model name MUST be new
-    self.model_name = self.settings.gemini_model  # e.g. "gemini-1.5-flash"
+        self.system_prompt = self._load_prompt_template()
 
-    self.generation_config = {
-        "temperature": 0.3,
-        "max_output_tokens": 16384,
-    }
-
-    self.system_prompt = self._load_prompt_template()
-
-    # Compile regex patterns for technical elements
-    self._compile_patterns()
+        # Compile regex patterns for technical elements
+        self._compile_patterns()
 
     def _load_prompt_template(self) -> str:
         """Load the translation prompt template."""
@@ -188,10 +191,18 @@ def __init__(self):
             chapter_content=processed_content
         )
 
-        # Call Gemini
+        # Call the LLM via OpenAI-compatible API
         try:
-            response = await self.model.generate_content_async(prompt)
-            translated_content = response.text
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=[
+                    {"role": "system", "content": "You are an expert translator. Translate the provided content to Urdu while preserving all structural elements like headings, code blocks, and links."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.3,
+                max_tokens=16384
+            )
+            translated_content = response.choices[0].message.content
         except Exception as e:
             logger.error(f"LLM call failed: {e}")
             raise

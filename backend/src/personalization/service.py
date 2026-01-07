@@ -1,7 +1,7 @@
 import time
 import logging
 from typing import Optional
-from google import genai
+from openai import OpenAI
 from pathlib import Path
 
 from ..config import get_settings
@@ -19,18 +19,21 @@ class PersonalizationService:
     def __init__(self):
         self.settings = get_settings()
 
-        # ✅ NEW Gemini client (safe)
-        self.client = genai.Client(
-            api_key=self.settings.gemini_api_key
-        )
-
-        # ✅ Model name MUST be new
-        self.model_name = self.settings.gemini_model  # e.g. "gemini-1.5-flash"
-
-        self.generation_config = {
-            "temperature": 0.3,
-            "max_output_tokens": 16384,
-        }
+        # Initialize OpenAI client with support for both OpenRouter and Gemini
+        if self.settings.openrouter_api_key:
+            self.client = OpenAI(
+                api_key=self.settings.openrouter_api_key,
+                base_url="https://openrouter.ai/api/v1"
+            )
+            self.model_name = self.settings.openrouter_model
+        elif self.settings.gemini_api_key:
+            self.client = OpenAI(
+                api_key=self.settings.gemini_api_key,
+                base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+            )
+            self.model_name = self.settings.gemini_model
+        else:
+            raise ValueError("Either OpenRouter API key or Gemini API key must be configured")
 
         self.system_prompt = self._load_prompt_template()
 
@@ -63,10 +66,18 @@ class PersonalizationService:
             user_profile=user_profile
         )
 
-        # Call Gemini
+        # Call the LLM via OpenAI-compatible API
         try:
-            response = await self.model.generate_content_async(prompt)
-            personalized_content = response.text
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=[
+                    {"role": "system", "content": "You are an expert technical writer. Adapt the provided content based on the user's experience level and background while preserving all structural elements like headings, code blocks, and links."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.3,
+                max_tokens=16384
+            )
+            personalized_content = response.choices[0].message.content
         except Exception as e:
             logger.error(f"LLM call failed: {e}")
             raise
