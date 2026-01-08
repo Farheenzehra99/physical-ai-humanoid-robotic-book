@@ -1,26 +1,16 @@
 import axios from 'axios';
 
-// Get API base URL from Docusaurus config or default to localhost
+// Get API base URL from Docusaurus config or default to Hugging Face Space
 const getApiBaseUrl = () => {
-  if (typeof window !== 'undefined' && window.location) {
-    // Check if we're in a Docusaurus environment
-    if (window.DOCUMENTATION_VERSION) {
-      // Try to get from Docusaurus config
-      const config = window.__DOCUSAURUS_CONFIG__;
-      if (config && config.customFields && config.customFields.chatApiUrl) {
-        return config.customFields.chatApiUrl;
-      }
-    }
-  }
-  // Default fallback
-  return 'http://localhost:8000';
+  // Force Hugging Face Space URL for production
+  return 'https://farheenzehra99-ai-book.hf.space';
 };
 
 const API_BASE_URL = getApiBaseUrl();
 
 // Create axios instance with defaults
 const api = axios.create({
-  baseURL: `${API_BASE_URL}/api/v1`,
+  baseURL: API_BASE_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

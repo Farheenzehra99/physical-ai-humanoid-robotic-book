@@ -11,6 +11,7 @@ from typing import Optional
 import os
 from .config import auth_settings
 from .callbacks import after_user_registration, after_user_signin
+from .endpoints import router as get_auth_router
 
 
 def initialize_auth_client() -> BaseClient:

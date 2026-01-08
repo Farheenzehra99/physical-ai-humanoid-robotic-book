@@ -5,12 +5,9 @@ const AuthContext = createContext();
 
 // Get API base URL
 const getApiUrl = () => {
-  if (typeof window !== 'undefined' && window.__DOCUSAURUS__) {
-    return window.__DOCUSAURUS__.siteConfig.customFields?.chatApiUrl || 'http://localhost:8000';
-  }
-  return 'http://localhost:8000';
+  // Force Hugging Face Space URL for production
+  return 'https://farheenzehra99-ai-book.hf.space';
 };
-
 // Auth Reducer
 const authReducer = (state, action) => {
   switch (action.type) {
@@ -117,7 +114,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const apiUrl = getApiUrl();
-      const response = await fetch(`${apiUrl}/api/v1/auth/signin`, {
+      const response = await fetch(`${apiUrl}/auth/signin`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -175,7 +172,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const apiUrl = getApiUrl();
-      const response = await fetch(`${apiUrl}/api/v1/auth/signup`, {
+      const response = await fetch(`${apiUrl}/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -244,7 +241,7 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('authToken');
       if (token) {
         const apiUrl = getApiUrl();
-        await fetch(`${apiUrl}/api/v1/auth/signout`, {
+        await fetch(`${apiUrl}/auth/signout`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -272,7 +269,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const apiUrl = getApiUrl();
-      const response = await fetch(`${apiUrl}/api/v1/auth/me`, {
+      const response = await fetch(`${apiUrl}/auth/me`, {
         headers: {
           'Authorization': `Bearer ${state.token}`,
         },
@@ -304,7 +301,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const apiUrl = getApiUrl();
-      const response = await fetch(`${apiUrl}/api/v1/auth/profile`, {
+      const response = await fetch(`${apiUrl}/auth/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

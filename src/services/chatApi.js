@@ -63,11 +63,10 @@ export async function sendChatMessage(question, selectedText = null, topK = 5) {
  * @returns {string} The API base URL
  */
 export function getApiUrl() {
-  if (typeof window !== 'undefined' && window.__DOCUSAURUS__) {
-    return window.__DOCUSAURUS__.siteConfig.customFields?.chatApiUrl || 'http://localhost:8000';
-  }
-  return 'http://localhost:8000';
+  // Force Hugging Face Space URL
+  return 'https://farheenzehra99-ai-book.hf.space';
 }
+
 
 /**
  * Get user-friendly error message based on status code
