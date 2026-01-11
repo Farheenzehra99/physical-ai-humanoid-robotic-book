@@ -12,24 +12,7 @@ import os
 from .config import auth_settings
 from .callbacks import after_user_registration, after_user_signin
 from .endpoints import router as get_auth_router
-
-
-def initialize_auth_client() -> BaseClient:
-    if not auth_settings.auth_secret or not auth_settings.auth_url:
-        raise RuntimeError("Better Auth is not configured. Check AUTH_SECRET and AUTH_URL.")
-
-    """
-    Initialize Better Auth client with configuration.
-
-    Returns:
-        Configured Better Auth client instance
-    """
-    client = BaseClient(
-        secret=auth_settings.auth_secret,
-        base_url=auth_settings.auth_url,
-        trust_host=auth_settings.auth_trust_host
-    )
-    return client
+from .client import auth_client
 
 
 def get_auth_router_with_callbacks():
@@ -50,12 +33,9 @@ def get_auth_router_with_callbacks():
         }
     }
 
-    # Initialize client
-    client = initialize_auth_client()
-
     # Get the auth router with custom callbacks
     auth_router = get_auth_router(
-        client=client,
+        client=auth_client,
         config=auth_config,
         # Custom callbacks for handling profile data
         after_register_callback=after_user_registration,
@@ -63,7 +43,3 @@ def get_auth_router_with_callbacks():
     )
 
     return auth_router
-
-
-# Create global auth client instance
-auth_client = initialize_auth_client()

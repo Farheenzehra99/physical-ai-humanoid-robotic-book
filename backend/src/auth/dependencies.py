@@ -8,7 +8,7 @@ and authorization in FastAPI routes.
 from fastapi import Request, Depends, HTTPException
 from typing import Optional
 from ..better_auth_mock import BaseClient, User
-from .main import auth_client
+from .client import auth_client
 from .config import auth_settings
 import os
 

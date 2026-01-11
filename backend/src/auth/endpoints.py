@@ -21,7 +21,7 @@ from ..database import get_async_db
 from ..models.user_profile import UserProfile
 from ..database.schemas import UserProfileCreate
 from ..database.crud import create_user_profile, get_user_profile_by_user_id, update_user_profile
-from .main import auth_client
+from .client import auth_client
 from .config import auth_settings
 from .dependencies import get_current_active_user
 import os

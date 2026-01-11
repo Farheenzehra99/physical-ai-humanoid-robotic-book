@@ -9,10 +9,14 @@ const TIMEOUT_MS = 60000; // 60s for LLM response
  * Get API URL from Docusaurus config
  */
 function getApiUrl() {
-  if (typeof window !== 'undefined' && window.__DOCUSAURUS__) {
-    return window.__DOCUSAURUS__.siteConfig.customFields?.chatApiUrl || 'http://localhost:8000';
+  // Use configured API URL from Docusaurus config, fallback to Hugging Face Space
+  if (typeof window !== 'undefined' && window.chatApiUrl) {
+    return window.chatApiUrl;
   }
-  return 'http://localhost:8000';
+
+  // Fallback to environment variable or default Hugging Face Space URL
+  const envUrl = process.env.CHAT_API_URL || 'https://farheenzehra99-ai-book.hf.space';
+  return envUrl;
 }
 
 /**
@@ -36,7 +40,7 @@ export async function personalizeChapter(chapterSlug, chapterContent, chapterTit
       throw new PersonalizationError(401, 'Authentication required');
     }
 
-    const response = await fetch(`${apiUrl}/api/v1/personalize/chapter`, {
+    const response = await fetch(`${apiUrl}/personalize/chapter`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

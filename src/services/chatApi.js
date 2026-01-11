@@ -63,8 +63,14 @@ export async function sendChatMessage(question, selectedText = null, topK = 5) {
  * @returns {string} The API base URL
  */
 export function getApiUrl() {
-  // Force Hugging Face Space URL
-  return 'https://farheenzehra99-ai-book.hf.space';
+  // Use configured API URL from Docusaurus config, fallback to Hugging Face Space
+  if (typeof window !== 'undefined' && window.chatApiUrl) {
+    return window.chatApiUrl;
+  }
+
+  // Fallback to environment variable or default Hugging Face Space URL
+  const envUrl = process.env.CHAT_API_URL || 'https://farheenzehra99-ai-book.hf.space';
+  return envUrl;
 }
 
 

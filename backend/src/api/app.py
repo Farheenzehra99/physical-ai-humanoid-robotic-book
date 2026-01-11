@@ -80,6 +80,9 @@ retrieved context from the knowledge base.
         "https://physical-ai-humanoid-robotic-book-ten.vercel.app",
         "https://physical-ai-humanoid-robotic-book-bpivm88wi.vercel.app",
         "https://physical-ai-robotics.dev",
+        "https://*.hf.space",  # Allow all Hugging Face Spaces
+        "*.hf.space",         # Alternative format for Hugging Face Spaces
+        "https://farheenzehra99-ai-book.hf.space",  # Specific Hugging Face Space
         "http://localhost:3000",
         "http://localhost:3001",
         "http://localhost:8000",
@@ -109,33 +112,32 @@ retrieved context from the knowledge base.
     # Lazy-load routers with try-except for graceful degradation
     try:
         from .routes import health_router
-        app.include_router(health_router, prefix=settings.api_prefix)
+        app.include_router(health_router)
     except Exception as e:
         logger.warning(f"Failed to include health_router: {e}")
 
     try:
         from .routes import chat_router
-        app.include_router(chat_router, prefix=settings.api_prefix)
+        app.include_router(chat_router)
     except Exception as e:
         logger.warning(f"Failed to include chat_router: {e}")
 
     try:
         from .routes import personalize_router
-        app.include_router(personalize_router, prefix=settings.api_prefix)
+        app.include_router(personalize_router)
     except Exception as e:
         logger.warning(f"Failed to include personalize_router: {e}")
 
     try:
         from .routes import translate_router
-        app.include_router(translate_router, prefix=settings.api_prefix)
+        app.include_router(translate_router)
     except Exception as e:
         logger.warning(f"Failed to include translate_router: {e}")
 
-    try:
-        from ..auth.endpoints import router as auth_router
-        app.include_router(auth_router, prefix=settings.api_prefix)
-    except Exception as e:
-        logger.warning(f"Failed to include auth_router: {e}")
+
+    from ..auth.client import auth_client
+    from ..auth.endpoints import router as auth_router
+    app.include_router(auth_router)
 
     # Root endpoint for health checks
     @app.get("/")
@@ -246,3 +248,4 @@ retrieved context from the knowledge base.
 
 # Create default app instance
 app = create_app()
+

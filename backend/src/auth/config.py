@@ -6,7 +6,7 @@ from typing import Optional
 
 class AuthSettings(BaseSettings):
     # Better Auth Configuration
-    auth_secret: str = "your-super-secret-key-for-dev-mode"
+    auth_secret: str = "p_FUQLeUBZGN-UaphLpIzabKQAzGd2bGklE7ZMlH6HE"
     auth_url: str = "https://farheenzehra99-ai-book.hf.space"
     auth_trust_host: bool = True  # Trust host in production
 
