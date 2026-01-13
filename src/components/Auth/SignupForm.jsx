@@ -158,12 +158,13 @@ const SignupForm = () => {
 
           {/* Programming Languages */}
           <div className="form-group">
-            <label>Programming Languages You Know * (Select all that apply)</label>
-            <div className="checkbox-group">
+            <label id="programming-languages-label">Programming Languages You Know * (Select all that apply)</label>
+            <div className="checkbox-group" role="group" aria-labelledby="programming-languages-label">
               {programmingLanguagesOptions.map((lang) => (
-                <label key={lang} className="checkbox-label">
+                <label key={lang} className="checkbox-label" htmlFor={`programming_language_${lang.toLowerCase().replace(/\s+/g, '_')}`}>
                   <input
                     type="checkbox"
+                    id={`programming_language_${lang.toLowerCase().replace(/\s+/g, '_')}`}
                     name="programming_languages"
                     value={lang}
                     checked={formData.programming_languages.includes(lang)}
@@ -231,9 +232,10 @@ const SignupForm = () => {
 
           {/* Terms Agreement */}
           <div className="form-group">
-            <label className="checkbox-label">
+            <label className="checkbox-label" htmlFor="agree_to_terms">
               <input
                 type="checkbox"
+                id="agree_to_terms"
                 name="agree_to_terms"
                 checked={formData.agree_to_terms}
                 onChange={handleChange}

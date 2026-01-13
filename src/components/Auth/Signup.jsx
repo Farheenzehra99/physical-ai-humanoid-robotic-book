@@ -142,12 +142,13 @@ const Signup = () => {
 
             {/* Programming Level */}
             <div className="form-group">
-              <label>Programming Level:</label>
-              <div className="radio-group">
+              <label id="programming-level-label">Programming Level:</label>
+              <div className="radio-group" role="radiogroup" aria-labelledby="programming-level-label">
                 {['Beginner', 'Intermediate', 'Advanced'].map(level => (
-                  <label key={level} className="radio-option">
+                  <label key={level} className="radio-option" htmlFor={`programming_level_${level.toLowerCase()}`}>
                     <input
                       type="radio"
+                      id={`programming_level_${level.toLowerCase()}`}
                       name="programming_level"
                       value={level}
                       checked={profileData.programming_level === level}
@@ -162,12 +163,13 @@ const Signup = () => {
 
             {/* Programming Languages */}
             <div className="form-group">
-              <label>Known Programming Languages (select all that apply):</label>
-              <div className="checkbox-group">
+              <label id="programming-languages-label">Known Programming Languages (select all that apply):</label>
+              <div className="checkbox-group" role="group" aria-labelledby="programming-languages-label">
                 {programmingLanguages.map(lang => (
-                  <label key={lang} className="checkbox-option">
+                  <label key={lang} className="checkbox-option" htmlFor={`programming_language_${lang.toLowerCase().replace(/\s+/g, '_')}`}>
                     <input
                       type="checkbox"
+                      id={`programming_language_${lang.toLowerCase().replace(/\s+/g, '_')}`}
                       name="programming_languages"
                       value={lang}
                       checked={profileData.programming_languages.includes(lang)}
@@ -181,12 +183,13 @@ const Signup = () => {
 
             {/* AI Knowledge Level */}
             <div className="form-group">
-              <label>AI Knowledge Level:</label>
-              <div className="radio-group">
+              <label id="ai-knowledge-level-label">AI Knowledge Level:</label>
+              <div className="radio-group" role="radiogroup" aria-labelledby="ai-knowledge-level-label">
                 {['None', 'Basic', 'Intermediate', 'Advanced'].map(level => (
-                  <label key={level} className="radio-option">
+                  <label key={level} className="radio-option" htmlFor={`ai_knowledge_level_${level.toLowerCase()}`}>
                     <input
                       type="radio"
+                      id={`ai_knowledge_level_${level.toLowerCase()}`}
                       name="ai_knowledge_level"
                       value={level}
                       checked={profileData.ai_knowledge_level === level}
@@ -201,12 +204,13 @@ const Signup = () => {
 
             {/* Hardware Experience */}
             <div className="form-group">
-              <label>Hardware Experience:</label>
-              <div className="radio-group">
+              <label id="hardware-experience-label">Hardware Experience:</label>
+              <div className="radio-group" role="radiogroup" aria-labelledby="hardware-experience-label">
                 {['None', 'Basic', 'Robotics', 'Embedded Systems'].map(exp => (
-                  <label key={exp} className="radio-option">
+                  <label key={exp} className="radio-option" htmlFor={`hardware_experience_${exp.toLowerCase().replace(/\s+/g, '_')}`}>
                     <input
                       type="radio"
+                      id={`hardware_experience_${exp.toLowerCase().replace(/\s+/g, '_')}`}
                       name="hardware_experience"
                       value={exp}
                       checked={profileData.hardware_experience === exp}
@@ -221,12 +225,13 @@ const Signup = () => {
 
             {/* Learning Style */}
             <div className="form-group">
-              <label>Preferred Learning Style:</label>
-              <div className="radio-group">
+              <label id="learning-style-label">Preferred Learning Style:</label>
+              <div className="radio-group" role="radiogroup" aria-labelledby="learning-style-label">
                 {['Theory', 'Code-first', 'Visual', 'Mixed'].map(style => (
-                  <label key={style} className="radio-option">
+                  <label key={style} className="radio-option" htmlFor={`learning_style_${style.toLowerCase().replace('-', '_')}`}>
                     <input
                       type="radio"
+                      id={`learning_style_${style.toLowerCase().replace('-', '_')}`}
                       name="learning_style"
                       value={style}
                       checked={profileData.learning_style === style}
