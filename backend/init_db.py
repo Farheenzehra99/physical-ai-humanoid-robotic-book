@@ -28,15 +28,14 @@ async def init_database():
     print(f"Database URL: {async_engine.url}")
 
     try:
+        # Create tables without dropping them first to avoid connection issues
+        print("Creating tables...")
         async with async_engine.begin() as conn:
-            print("Dropping existing tables...")
-            await conn.run_sync(Base.metadata.drop_all)
-
-            print("Creating tables...")
             await conn.run_sync(Base.metadata.create_all)
 
-            # Verify tables were created
-            print("\nVerifying tables...")
+        # Verify tables were created
+        print("\nVerifying tables...")
+        async with async_engine.begin() as conn:
             result = await conn.execute(text(
                 "SELECT table_name FROM information_schema.tables "
                 "WHERE table_schema = 'public'"
