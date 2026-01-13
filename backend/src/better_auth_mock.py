@@ -67,7 +67,7 @@ class BaseClient:
         self._sessions: Dict[str, Session] = {}
         self._email_to_user_id: Dict[str, str] = {}
 
-        logger.info(f"Better Auth client initialized with base_url: {base_url}")
+        logger.info(f"Better Auth client initialized with base_url: {base_url} (local in-memory implementation)")
 
     def _hash_password(self, password: str) -> str:
         """Hash a password using SHA-256 with the secret key."""
