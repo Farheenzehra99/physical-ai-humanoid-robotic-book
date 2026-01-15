@@ -206,14 +206,14 @@ async def test_endpoints():
                 print(f"  Error (expected if no API keys): {data['error']}")
 
         # Test auth signin with wrong credentials (should return 401)
-        response = client.post("/api/v1/auth/signin", json={
+        response = client.post("/auth/signin", json={
             "email": "nonexistent@example.com",
             "password": "wrongpassword"
         })
         if response.status_code == 401:
-            print(f"{OK} POST /api/v1/auth/signin with wrong credentials returned 401")
+            print(f"{OK} POST /auth/signin with wrong credentials returned 401")
         else:
-            print(f"{WARN} POST /api/v1/auth/signin returned {response.status_code} (expected 401)")
+            print(f"{WARN} POST /auth/signin returned {response.status_code} (expected 401)")
 
         return True
     except Exception as e:

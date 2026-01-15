@@ -15,7 +15,6 @@ class Settings(BaseSettings):
     # API Configuration
     api_title: str = "Physical AI & Humanoid Robotics RAG API"
     api_version: str = "1.0.0"
-    api_prefix: str = "/api/v1"
     debug: bool = False
 
     # AI Model Configuration

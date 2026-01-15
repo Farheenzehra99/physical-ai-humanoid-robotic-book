@@ -201,7 +201,7 @@ def retrieve(query: str, top_k: int = 5) -> List[Dict[str, Any]]:
         - chunk_id: Unique identifier for the chunk
         - score: Relevance score (0-1, higher is better)
     """
-    collection_name = os.getenv("QDRANT_COLLECTION", "rag-embeddings")
+    collection_name = os.getenv("QDRANT_COLLECTION", "rag_full_book")
 
     # Get clients
     qdrant_client = get_qdrant_client()
@@ -225,7 +225,6 @@ def retrieve(query: str, top_k: int = 5) -> List[Dict[str, Any]]:
             query_vector=query_embedding,
             limit=top_k,
             with_payload=True,
-            score_threshold=0.3  # Minimum similarity threshold
         )
 
         # Format results
@@ -277,7 +276,7 @@ def check_collection_exists(collection_name: str = None) -> bool:
         True if collection exists, False otherwise
     """
     if collection_name is None:
-        collection_name = os.getenv("QDRANT_COLLECTION", "rag-embeddings")
+        collection_name = os.getenv("QDRANT_COLLECTION", "rag_full_book")
 
     qdrant_client = get_qdrant_client()
     if qdrant_client is None:
@@ -305,7 +304,7 @@ def get_collection_info(collection_name: str = None) -> Optional[Dict[str, Any]]
         Dictionary with collection info or None if failed
     """
     if collection_name is None:
-        collection_name = os.getenv("QDRANT_COLLECTION", "rag-embeddings")
+        collection_name = os.getenv("QDRANT_COLLECTION", "rag_full_book")
 
     qdrant_client = get_qdrant_client()
     if qdrant_client is None:
